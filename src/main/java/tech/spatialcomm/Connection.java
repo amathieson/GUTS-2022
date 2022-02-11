@@ -1,5 +1,8 @@
 package tech.spatialcomm;
 
+import tech.spatialcomm.commands.Commands;
+import tech.spatialcomm.io.IOHelpers;
+
 import java.net.Socket;
 
 public class Connection {
@@ -17,9 +20,11 @@ public class Connection {
 
     public void initializeUser() {
         try {
-            var code = socket.getInputStream();
-
-
+            var code = IOHelpers.readInt16(socket.getInputStream());
+            assert code == Commands.CONNECT.id;
+            var length = IOHelpers.readInt32(socket.getInputStream());
+            var name = IOHelpers.readUTF8String(socket.getInputStream());
+            System.out.println(name);
         }
         catch (Exception ignored) {}
     }
