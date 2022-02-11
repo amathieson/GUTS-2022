@@ -1,27 +1,39 @@
 The server is an entity responsible for redistributing audio packets to clients.
 The clients is entity responsible for gather audio data and sending it to the server.
 
-All TCP communications between client and server is delimited by a newline character.
-Every TCP communications is split into commands that are string.
+All bytes should be encoded in big endian.
+
+All TCP packets follow this structure:
+[packet id (2 bytes)][packet length (4 bytes)][packet body (n bytes, specified by packet length)]
+
+The following packet id are defined:
+CONNECT         0x00
+CONNECT_OK      0x01
+CONNECT_FAILED  0x02
+PING            0x03
+PONG            0x04
+
+String in packet body should follow this format:
+[length (4 bytes)][ utf-8 encoded string (n bytes, specified by length) ]
 
 In order to connect to a server,
 Step 1:
-Establish a TCP connection to the server, sends the following string:
+Establish a TCP connection to the server, sends the following packet:
 
-CONNECT username
+CONNECT (username: String)
 
 where username is the username of the client.
 
 Step 2:
-The server responses with either the following string
+The server responses with either the following packet
 
-CONNECT_OK user_id
+CONNECT_OK (user_id: Int32)
 
 where id is a 32-bit POSITIVE integer that will be used to identify the client in the future, or
 
-CONNECT_FAILED reason
+CONNECT_FAILED (reason: String)
 
-where reason is a string that explains why the client cannot connect to the server.
+where reason is a packet that explains why the client cannot connect to the server.
 
 Step 3:
 The client would proceed to send the following UDP packets to the server every 30ms:
