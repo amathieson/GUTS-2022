@@ -7,7 +7,7 @@ import java.io.OutputStream;
 public abstract class Command {
 
     public abstract Commands cmdType();
-    public abstract void readFrom(InputStream stream) throws IOException;
-    public abstract void writeTo(OutputStream stream) throws IOException;
+    protected abstract void readFrom(InputStream stream) throws IOException;
+    protected abstract void writeTo(OutputStream stream) throws IOException;
 
 }

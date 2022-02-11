@@ -22,12 +22,12 @@ public class CmdConnectOk extends Command {
     }
 
     @Override
-    public void readFrom(InputStream stream) throws IOException {
+    protected void readFrom(InputStream stream) throws IOException {
         this.userID = IOHelpers.readInt32(stream);
     }
 
     @Override
-    public void writeTo(OutputStream stream) throws IOException {
+    protected void writeTo(OutputStream stream) throws IOException {
         IOHelpers.writeInt32(stream, this.userID);
     }
 

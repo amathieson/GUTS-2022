@@ -3,6 +3,8 @@ package tech.spatialcomm;
 import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 
+import javax.xml.crypto.Data;
+import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -17,13 +19,25 @@ public class Main {
     public static void main(String[] main) throws Exception {
         ArrayList<Connection> connections = new ArrayList<>();
         ServerState serverState = new ServerState();
-        try (ServerSocket socket = new ServerSocket(25567)) {
-            while (true) {
-                Connection conn = new Connection(serverState, socket.accept(), System.currentTimeMillis());
-                System.out.println("tech.spatialcomm.Connection received from " + conn.toString());
-                SERVICE.submit(() -> handleClient(conn));
+        // TCP LOGIC
+        SERVICE.submit(() -> {
+            try (ServerSocket socket = new ServerSocket(25567)) {
+                System.out.println("TCP Listening on: " + socket.getLocalSocketAddress());
+                while (true) {
+                    Connection conn = new Connection(serverState, socket.accept(), System.currentTimeMillis());
+                    System.out.println("tech.spatialcomm.Connection received from " + conn.toString());
+                    SERVICE.submit(() -> handleClient(conn));
+                }
             }
-        }
+        });
+        // UDP LOGIC
+        SERVICE.submit(() -> {
+            try (DatagramSocket socket = new DatagramSocket(25567)) {
+                System.out.println("UDP Listening on: " + socket.getLocalSocketAddress());
+                while (true) {
+                }
+            }
+        });
     }
 
     public static void handleClient(Connection connection) {
