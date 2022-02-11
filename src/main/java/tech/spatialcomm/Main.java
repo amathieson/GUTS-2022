@@ -26,6 +26,8 @@ public class Main {
                     System.out.println("tech.spatialcomm.Connection received from " + conn.toString());
                     SERVICE.submit(() -> handleClient(conn));
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         });
         // UDP LOGIC
@@ -38,7 +40,7 @@ public class Main {
                     if (packet.getLength() >= 8) {
                         byte[] body = new byte[packet.getLength()];
                         socket.receive(packet);
-                        System.arraycopy(packet, 0, body, 0, body.length);
+                        System.arraycopy(buffer, 0, body, 0, body.length);
 
                         // get ID
                         var buf = ByteBuffer.wrap(body, 0, 4);
@@ -54,6 +56,8 @@ public class Main {
                         System.err.println("bruh why is the packet so small");
                     }
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         });
     }

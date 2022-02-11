@@ -79,6 +79,7 @@ public class Connection {
             this.counter = counter;
 
             for (var entry : this.serverState.connections.entrySet()) {
+                System.out.println(this.serverState.connections);
                 if (entry.getKey() != this.userID && entry.getValue().socketAddress != null) {
                     var packet = new DatagramPacket(body, 0, body.length);
                     packet.setSocketAddress(entry.getValue().socketAddress);
