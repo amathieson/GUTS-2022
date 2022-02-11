@@ -10,14 +10,17 @@ import java.net.Socket;
 public class Connection {
     Socket socket;
     public final ServerState serverState;
-    public int userID;
+    public final int userID;
     public int counter;
     public long lastPing;
+    public String username;
 
     public Connection(ServerState state, Socket socket, long lastPing) {
         this.serverState = state;
         this.socket = socket;
         this.lastPing = lastPing;
+        this.userID = state.assignUserId();
+        state.connections.put(this.userID, this);
     }
 
     public String toString() {
@@ -36,7 +39,10 @@ public class Connection {
     }
 
     public boolean isAlive() {
-        return this.socket.isConnected();
+        var b = this.socket.isConnected();
+        if (!b)
+            this.serverState.connections.remove(this.userID);
+        return b;
     }
 
     public void sendCommand(Command command) throws IOException {
@@ -47,8 +53,7 @@ public class Connection {
     public void onPacketRecv(Command command) throws IOException {
         if (userID == 0) {
             if (command instanceof CmdConnect cmd) {
-                var username = cmd.username;
-                this.userID = this.serverState.addUser(username);
+                this.username = cmd.username;
                 sendCommand(new CmdConnectOk(this.userID));
             } else {
                 sendCommand(new CmdConnectFailed("CONNECT expected"));

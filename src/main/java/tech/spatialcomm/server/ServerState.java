@@ -1,23 +1,25 @@
 package tech.spatialcomm.server;
 
-import java.util.HashMap;
+import tech.spatialcomm.Connection;
+
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerState {
 
     private static final Random RANDOM = new Random();
 
-    public final HashMap<Integer, String> users = new HashMap<>();
+    public final Map<Integer, Connection> connections = new ConcurrentHashMap<>();
 
     /**
      * add a user, returns the assigned id
      */
-    public int addUser(String username) {
+    public int assignUserId() {
         int id;
         do {
             id = RANDOM.nextInt(Integer.MAX_VALUE);
-        } while (users.containsKey(id));
-        users.put(id, username);
+        } while (connections.containsKey(id));
         return id;
     }
 
