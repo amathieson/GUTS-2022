@@ -49,7 +49,4 @@ public class Client {
         }
     }
 
-    public void sendAudio() {
-        DatagramSocket.
-    }
 }
