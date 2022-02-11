@@ -14,4 +14,13 @@ public class Connection {
     public String toString() {
         return socket.getRemoteSocketAddress().toString();
     }
+
+    public void initializeUser() {
+        try {
+            var code = socket.getInputStream();
+
+
+        }
+        catch (Exception ignored) {}
+    }
 }
