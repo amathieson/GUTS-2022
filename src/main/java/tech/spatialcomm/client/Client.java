@@ -1,9 +1,9 @@
 package tech.spatialcomm.client;
 
-import tech.spatialcomm.commands.CmdPong;
-import tech.spatialcomm.commands.Commands;
+import tech.spatialcomm.commands.*;
 import tech.spatialcomm.io.IOHelpers;
 
+import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -12,43 +12,42 @@ import java.util.Random;
 public class Client {
     String ip;
     int tcp_port;
-    final int udp_port = 25567;
 
     private Socket clientSocket;
     private DatagramSocket udpClientSocket;
+    private final SocketAddress udpServerAddr;
 
     private int clientId;
     long counter = 0;
 
-    public Client(String ip, int port, String name) {
+    public Client(String ip, int port, String name) throws IOException {
         this.ip = ip;
         this.tcp_port = port;
-        Socket clientSocket = null;
-        try {
-            // Send a connection request
-            clientSocket = new Socket(ip, port);
-            IOHelpers.writeInt16(clientSocket.getOutputStream(), Commands.CONNECT.id);
-            String connect_str = new String("CONNECT " + name);
-            IOHelpers.writeInt32(clientSocket.getOutputStream(), connect_str.getBytes(StandardCharsets.UTF_8).length);
-            IOHelpers.writeUTF8String(clientSocket.getOutputStream(), name);
+        this.udpServerAddr = new InetSocketAddress(ip, port);
+        Socket clientSocket = new Socket(ip, port);
+        Commands.writeCommand(new CmdConnect(name), clientSocket.getOutputStream());
 
-            // Get the clientID from the server
-            assert IOHelpers.readInt16(clientSocket.getInputStream()) == Commands.CONNECT_OK.id;
-            IOHelpers.readInt32(clientSocket.getInputStream());
-            clientId = IOHelpers.readInt32(clientSocket.getInputStream());
+        // Get the clientID from the server
+        clientId = -1;
+        do {
+            var cmd = Commands.readCommand(clientSocket.getInputStream());
+            if (cmd instanceof CmdConnectOk cmdConnectOk) {
+                clientId = cmdConnectOk.userID;
+            } else if (cmd instanceof CmdConnectFailed cmdConnectFailed) {
+                System.err.println(cmdConnectFailed.reason);
+                System.exit(-1);
+            }
+        } while (clientId < 0);
 
-            udpClientSocket = new DatagramSocket(udp_port, InetAddress.getByName(ip));
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        udpClientSocket = new DatagramSocket(new InetSocketAddress("0.0.0.0", 0));
         System.out.println("Connected!");
     }
 
     public void listenToPing() {
         while (true) {
             try {
-                if (Commands.PING.id == Commands.readCommand(clientSocket.getInputStream()).cmdType().id) {
+                var cmd = Commands.readCommand(clientSocket.getInputStream());
+                if (cmd instanceof CmdPing) {
                     Commands.writeCommand(new CmdPong(), clientSocket.getOutputStream());
                 }
                 Thread.sleep(100);
@@ -65,6 +64,7 @@ public class Client {
             byte[] message = ByteBuffer.allocate(800).putInt(clientId).putLong(counter).put(audio).array();
             counter++;
             DatagramPacket dp = new DatagramPacket(message, message.length);
+            dp.setSocketAddress(this.udpServerAddr);
             udpClientSocket.send(dp);
         } catch (Exception e) {
             e.printStackTrace();

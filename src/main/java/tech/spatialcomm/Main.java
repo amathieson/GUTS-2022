@@ -1,5 +1,6 @@
 package tech.spatialcomm;
 
+import tech.spatialcomm.commands.CmdConnectOk;
 import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 
@@ -59,6 +60,7 @@ public class Main {
     public static void handleClient(Connection connection) {
         try {
             SERVICE.submit(connection::recvLoop);
+            connection.sendCommand(new CmdConnectOk(connection.userID));
             while (connection.isAlive()) {
                 Thread.sleep(5000L);
                 // timeout after 7 second of non activity
