@@ -16,7 +16,7 @@ public class Main {
         try (ServerSocket socket = new ServerSocket(25567)) {
             while (true) {
                 Connection conn = new Connection(socket.accept());
-                System.out.println("tech.spatialcomm.Connection received from " + client.getRemoteSocketAddress());
+                System.out.println("tech.spatialcomm.Connection received from " + conn.toString());
                 SERVICE.submit(() -> handleClient(conn));
             }
         }

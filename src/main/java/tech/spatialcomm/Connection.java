@@ -10,4 +10,8 @@ public class Connection {
     public Connection(Socket socket) {
         this.socket = socket;
     }
+
+    public String toString() {
+        return socket.getRemoteSocketAddress().toString();
+    }
 }
