@@ -38,8 +38,8 @@ public class Main {
                 while (true) {
                     var packet = new DatagramPacket(buffer, 0, buffer.length);
                     if (packet.getLength() >= 8) {
-                        byte[] body = new byte[packet.getLength()];
                         socket.receive(packet);
+                        byte[] body = new byte[packet.getLength()];
                         System.arraycopy(buffer, 0, body, 0, body.length);
 
                         // get ID

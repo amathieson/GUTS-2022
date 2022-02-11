@@ -62,8 +62,8 @@ public class Client {
             byte[] audio = new byte[400];
             Random rand = new Random();
             rand.nextBytes(audio);
-            System.out.println("Sending: " + Base64.getEncoder().encodeToString(audio));
-            byte[] message = ByteBuffer.allocate(800).putInt(clientId).putLong(counter).put(audio).array();
+            byte[] message = ByteBuffer.allocate(audio.length + 4 + 8).putInt(clientId).putLong(counter).put(audio).array();
+            System.out.println("Sending: " + Base64.getEncoder().encodeToString(message));
             counter++;
             // System.out.println(clientId);
             DatagramPacket dp = new DatagramPacket(message, message.length);

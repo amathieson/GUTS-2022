@@ -69,6 +69,7 @@ public class Connection {
     }
 
     public void onUDPPacketRecv(byte[] body) throws IOException {
+        System.out.println(body.length);
         try (var bais = new ByteArrayInputStream(body)) {
             var id = IOHelpers.readInt32(bais);
             var counter = IOHelpers.readInt64(bais);
