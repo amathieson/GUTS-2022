@@ -1,8 +1,10 @@
 package tech.spatialcomm.client;
 
+import tech.spatialcomm.commands.CmdPong;
 import tech.spatialcomm.commands.Commands;
 import tech.spatialcomm.io.IOHelpers;
 
+import java.net.DatagramSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -35,9 +37,19 @@ public class Client {
         System.out.println("Connected!");
     }
 
+    public void listenToPing() {
+        while (true) {
+            try {
+                if (Commands.PING.id == Commands.readCommand(clientSocket.getInputStream()).cmdType().id) {
+                    Commands.writeCommand(new CmdPong(), clientSocket.getOutputStream());
+                }
+                Thread.sleep(100);
+            }
+            catch (Exception ignored) {}
+        }
+    }
 
-    public static void main(String args[]) {
-        Client client = new Client("127.0.0.1", 6000, "boi");
-
+    public void sendAudio() {
+        DatagramSocket.
     }
 }
