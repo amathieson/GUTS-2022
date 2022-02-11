@@ -12,10 +12,10 @@ public class CmdPing extends Command {
     }
 
     @Override
-    public void readFrom(InputStream stream) throws IOException {
+    protected void readFrom(InputStream stream) throws IOException {
     }
 
     @Override
-    public void writeTo(OutputStream stream) throws IOException {
+    protected void writeTo(OutputStream stream) throws IOException {
     }
 }

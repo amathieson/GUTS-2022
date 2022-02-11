@@ -40,7 +40,7 @@ public class Connection {
     }
 
     public void sendCommand(Command command) throws IOException {
-        command.writeTo(socket.getOutputStream());
+        Commands.writeCommand(command, socket.getOutputStream());
         socket.getOutputStream().flush();
     }
 

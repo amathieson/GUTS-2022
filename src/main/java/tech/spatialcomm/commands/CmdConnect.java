@@ -23,12 +23,12 @@ public class CmdConnect extends Command {
     }
 
     @Override
-    public void readFrom(InputStream stream) throws IOException {
+    protected void readFrom(InputStream stream) throws IOException {
         this.username = IOHelpers.readUTF8String(stream);
     }
 
     @Override
-    public void writeTo(OutputStream stream) throws IOException {
+    protected void writeTo(OutputStream stream) throws IOException {
         IOHelpers.writeUTF8String(stream, this.username);
     }
 

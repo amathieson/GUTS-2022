@@ -22,12 +22,12 @@ public class CmdConnectFailed extends Command {
     }
 
     @Override
-    public void readFrom(InputStream stream) throws IOException {
+    protected void readFrom(InputStream stream) throws IOException {
         this.reason = IOHelpers.readUTF8String(stream);
     }
 
     @Override
-    public void writeTo(OutputStream stream) throws IOException {
+    protected void writeTo(OutputStream stream) throws IOException {
         IOHelpers.writeUTF8String(stream, this.reason);
     }
 
