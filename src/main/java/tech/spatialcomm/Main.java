@@ -3,6 +3,7 @@ package tech.spatialcomm;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -11,17 +12,17 @@ public class Main {
     private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
 
     public static void main(String[] main) throws Exception {
-        System.out.println("Among us");
+        ArrayList<Connection> connections = new ArrayList<>();
         try (ServerSocket socket = new ServerSocket(25567)) {
             while (true) {
-                var client = socket.accept();
-                System.out.println("Connection received from " + client.getRemoteSocketAddress());
-                SERVICE.submit(() -> handleClient(client));
+                Connection conn = new Connection(socket.accept());
+                System.out.println("tech.spatialcomm.Connection received from " + client.getRemoteSocketAddress());
+                SERVICE.submit(() -> handleClient(conn));
             }
         }
     }
 
-    public static void handleClient(Socket client) {
+    public static void handleClient(Connection connection) {
         try {
             System.out.println("handling client");
             client.getOutputStream().write("bye".getBytes(StandardCharsets.UTF_8));
