@@ -11,9 +11,11 @@ public class Main {
     public static void main(String[] main) throws Exception {
         System.out.println("Among us");
         try (ServerSocket socket = new ServerSocket(25567)) {
-            var client = socket.accept();
-            System.out.println("Connection received from " + client.getRemoteSocketAddress());
-            SERVICE.submit(() -> handleClient(client));
+            while (true) {
+                var client = socket.accept();
+                System.out.println("Connection received from " + client.getRemoteSocketAddress());
+                SERVICE.submit(() -> handleClient(client));
+            }
         }
     }
 
