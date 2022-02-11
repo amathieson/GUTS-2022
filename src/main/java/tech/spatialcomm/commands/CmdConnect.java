@@ -10,6 +10,9 @@ public class CmdConnect extends Command {
 
     public String username;
 
+    public CmdConnect() {
+    }
+
     public CmdConnect(String username) {
         this.username = username;
     }

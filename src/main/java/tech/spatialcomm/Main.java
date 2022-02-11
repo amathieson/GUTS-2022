@@ -1,5 +1,6 @@
 package tech.spatialcomm;
 
+import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 
 import java.net.ServerSocket;
@@ -27,10 +28,16 @@ public class Main {
 
     public static void handleClient(Connection connection) {
         try {
-            connection.initializeUser();
-            while (!connection.isAlive()) {
+            SERVICE.submit(connection::recvLoop);
+            while (connection.isAlive()) {
                 Thread.sleep(5000L);
-                connection.ping();
+                // timeout after 7 second of non activity
+                if (System.currentTimeMillis() - connection.lastPing > 7000L) {
+                    connection.socket.close();
+                    break;
+                } else {
+                    connection.sendCommand(new CmdPing());
+                }
             }
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -32,6 +32,14 @@ public enum Commands {
 
     public static Command readCommand(InputStream is) throws IOException {
         var cmd = IOHelpers.readCommandType(is);
+        Command obj;
+        try {
+            obj = REGISTRY.get(cmd).getConstructor().newInstance();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        obj.readFrom(is);
+        return obj;
     }
 
 }

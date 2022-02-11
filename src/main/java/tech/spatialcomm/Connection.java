@@ -1,11 +1,10 @@
 package tech.spatialcomm;
 
-import tech.spatialcomm.commands.Commands;
+import tech.spatialcomm.commands.*;
 import tech.spatialcomm.io.IOHelpers;
 import tech.spatialcomm.server.ServerState;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 
 public class Connection {
@@ -25,35 +24,38 @@ public class Connection {
         return socket.getRemoteSocketAddress().toString();
     }
 
-    public void initializeUser() {
+    public void recvLoop() {
         try {
-            var is = socket.getInputStream();
-            var os = socket.getOutputStream();
-            var code = IOHelpers.readCommandType(is);
-            if (code == Commands.CONNECT) {
-                var length = IOHelpers.readInt32(is);
-                var name = IOHelpers.readUTF8String(is);
-                this.userID = this.serverState.addUser(name);
-                System.out.println(name + " " + this.userID);
-            } else {
-                IOHelpers.writeCommandType(os, Commands.CONNECT_FAILED);
-                IOHelpers.writeUTF8String(os, "CONNECT expected");
-                socket.close();
+            while (this.isAlive()) {
+                var cmd = Commands.readCommand(this.socket.getInputStream());
+                this.onPacketRecv(cmd);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        catch (Exception ignored) {}
-    }
-
-    public void ping() throws IOException {
-        IOHelpers.writeCommandType(socket.getOutputStream(), Commands.PING);
     }
 
     public boolean isAlive() {
         return this.socket.isConnected();
     }
 
-    public void onPacketRecv(Commands command, InputStream is) {
+    public void sendCommand(Command command) throws IOException {
+        command.writeTo(socket.getOutputStream());
+        socket.getOutputStream().flush();
+    }
 
+    public void onPacketRecv(Command command) throws IOException {
+        if (userID == 0) {
+            if (command instanceof CmdConnect cmd) {
+                var username = cmd.username;
+                this.userID = this.serverState.addUser(username);
+                sendCommand(new CmdConnectOk(this.userID));
+            } else {
+                sendCommand(new CmdConnectFailed("CONNECT expected"));
+            }
+        } else if (command instanceof CmdPong) {
+            this.lastPing = System.currentTimeMillis();
+        }
     }
 
 }

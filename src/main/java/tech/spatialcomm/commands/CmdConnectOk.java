@@ -10,6 +10,8 @@ public class CmdConnectOk extends Command {
 
     public int userID;
 
+    public CmdConnectOk() {}
+
     public CmdConnectOk(int userID) {
         this.userID = userID;
     }
