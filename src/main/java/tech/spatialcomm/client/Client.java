@@ -63,6 +63,7 @@ public class Client {
             Random rand = new Random();
             rand.nextBytes(audio);
             byte[] message = ByteBuffer.allocate(800).putInt(clientId).putLong(counter).put(audio).array();
+            counter++;
             DatagramPacket dp = new DatagramPacket(message, message.length);
             udpClientSocket.send(dp);
         } catch (Exception e) {
