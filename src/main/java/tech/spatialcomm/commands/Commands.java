@@ -4,6 +4,7 @@ import tech.spatialcomm.io.IOHelpers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 
 public enum Commands {
@@ -40,6 +41,11 @@ public enum Commands {
         }
         obj.readFrom(is);
         return obj;
+    }
+
+    public static void writeCommand(Command cmd, OutputStream os) throws IOException {
+        IOHelpers.writeCommandType(os, cmd.cmdType());
+        cmd.writeTo(os);
     }
 
 }
