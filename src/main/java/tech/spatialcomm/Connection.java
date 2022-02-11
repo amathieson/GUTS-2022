@@ -4,16 +4,20 @@ import tech.spatialcomm.commands.*;
 import tech.spatialcomm.io.IOHelpers;
 import tech.spatialcomm.server.ServerState;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 public class Connection {
     Socket socket;
     public final ServerState serverState;
     public final int userID;
-    public int counter;
+    public long counter = Long.MIN_VALUE;
     public long lastPing;
     public String username;
+    public SocketAddress socketAddress = null;
 
     public Connection(ServerState state, Socket socket, long lastPing) {
         this.serverState = state;
@@ -60,6 +64,26 @@ public class Connection {
             }
         } else if (command instanceof CmdPong) {
             this.lastPing = System.currentTimeMillis();
+        }
+    }
+
+    public void onUDPPacketRecv(byte[] body) throws IOException {
+        try (var bais = new ByteArrayInputStream(body)) {
+            var id = IOHelpers.readInt32(bais);
+            var counter = IOHelpers.readInt64(bais);
+            if (this.counter >= counter) {
+                // out of order packet
+                return;
+            }
+            this.counter = counter;
+
+            for (var entry : this.serverState.connections.entrySet()) {
+                if (entry.getKey() != this.userID && entry.getValue().socketAddress != null) {
+                    var packet = new DatagramPacket(body, 0, body.length);
+                    packet.setSocketAddress(entry.getValue().socketAddress);
+                    this.serverState.datagramSocket.send(packet);
+                }
+            }
         }
     }
 

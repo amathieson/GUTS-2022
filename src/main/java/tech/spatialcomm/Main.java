@@ -3,12 +3,10 @@ package tech.spatialcomm;
 import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 
-import javax.xml.crypto.Data;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,8 +15,7 @@ public class Main {
     private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
 
     public static void main(String[] main) throws Exception {
-        ArrayList<Connection> connections = new ArrayList<>();
-        ServerState serverState = new ServerState();
+        ServerState serverState = new ServerState(new DatagramSocket(25567));
         // TCP LOGIC
         SERVICE.submit(() -> {
             try (ServerSocket socket = new ServerSocket(25567)) {
@@ -32,9 +29,28 @@ public class Main {
         });
         // UDP LOGIC
         SERVICE.submit(() -> {
-            try (DatagramSocket socket = new DatagramSocket(25567)) {
+            try (DatagramSocket socket = serverState.datagramSocket) {
                 System.out.println("UDP Listening on: " + socket.getLocalSocketAddress());
+                byte[] buffer = new byte[65536];
                 while (true) {
+                    var packet = new DatagramPacket(buffer, 0, buffer.length);
+                    if (packet.getLength() >= 8) {
+                        byte[] body = new byte[packet.getLength()];
+                        socket.receive(packet);
+
+                        // get ID
+                        var buf = ByteBuffer.wrap(body, 0, 4);
+                        var id = buf.getInt();
+                        var connection = serverState.connections.get(id);
+                        if (connection != null) {
+                            connection.socketAddress = packet.getSocketAddress();
+                            connection.onUDPPacketRecv(body);
+                        } else {
+                            System.err.println("bruh i have no idea who is sending this packet");
+                        }
+                    } else {
+                        System.err.println("bruh why is the packet so small");
+                    }
                 }
             }
         });
