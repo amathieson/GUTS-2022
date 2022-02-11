@@ -24,10 +24,11 @@ public class Main {
 
     public static void handleClient(Connection connection) {
         try {
+            /*
             System.out.println("handling client");
             client.getOutputStream().write("bye".getBytes(StandardCharsets.UTF_8));
             Thread.sleep(5000L);
-            client.close();
+            client.close(); */
         } catch (Exception ex) {
             ex.printStackTrace();
         }
