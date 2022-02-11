@@ -9,8 +9,8 @@ public enum Commands {
 
     public final short id;
 
-    Commands(short id) {
+    Commands(int id) {
         // java moment
-        this.id = id;
+        this.id = (short) id;
     }
 }
