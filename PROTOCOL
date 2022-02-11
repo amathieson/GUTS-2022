@@ -1,0 +1,45 @@
+The server is an entity responsible for redistributing audio packets to clients.
+The clients is entity responsible for gather audio data and sending it to the server.
+
+All TCP communications between client and server is delimited by a newline character.
+Every TCP communications is split into commands that are string.
+
+In order to connect to a server,
+Step 1:
+Establish a TCP connection to the server, sends the following string:
+
+CONNECT username
+
+where username is the username of the client.
+
+Step 2:
+The server responses with either the following string
+
+CONNECT_OK user_id
+
+where id is a 32-bit POSITIVE integer that will be used to identify the client in the future, or
+
+CONNECT_FAILED reason
+
+where reason is a string that explains why the client cannot connect to the server.
+
+Step 3:
+The client would proceed to send the following UDP packets to the server every 30ms:
+
+[user_id (4 bytes)][counter (8 bytes)][audio data (~200 to 600 bytes)]
+
+where user_id was the integer previously assigned by the server, counter is a 64-bit integer that is
+incremented every time a packet is sent, and audio data is OPUS.NET compressed audio data.
+
+all integers should be encoded into big endian bytes.
+
+Step 4:
+The server would routinely send a PING command to the client. The client MUST respond with PONG.
+If the client fails to respond with PONG within a fixed amount of time deemed by the server, the server
+would consider the client disconnected.
+
+Step 5.
+To terminate the connection, cut off the TCP connection with the server.
+
+Other commands:
+idk add them later (kick, and other stuff)
