@@ -25,6 +25,7 @@ public class Connection {
         this.lastPing = lastPing;
         this.userID = state.assignUserId();
         state.connections.put(this.userID, this);
+        System.out.println("ID: " + userID);
     }
 
     public String toString() {

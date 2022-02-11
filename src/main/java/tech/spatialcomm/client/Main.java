@@ -5,6 +5,9 @@ public class Main {
         Client client = new Client("127.0.0.1", 25567, "boi");
         Thread t = new Thread(client::listenToPing);
         t.start();
-        client.sendAudio();
+        while (true) {
+            client.sendAudio();
+            Thread.sleep(30L);
+        }
     }
 }

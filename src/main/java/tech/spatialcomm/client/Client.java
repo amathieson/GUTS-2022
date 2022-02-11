@@ -39,8 +39,8 @@ public class Client {
             }
         } while (clientId < 0);
 
-        udpClientSocket = new DatagramSocket(new InetSocketAddress("0.0.0.0", 0));
-        System.out.println("Connected!");
+        udpClientSocket = new DatagramSocket();
+        System.out.println("Connected! ID: " + this.clientId);
     }
 
     public void listenToPing() {
@@ -63,6 +63,7 @@ public class Client {
             rand.nextBytes(audio);
             byte[] message = ByteBuffer.allocate(800).putInt(clientId).putLong(counter).put(audio).array();
             counter++;
+            // System.out.println(clientId);
             DatagramPacket dp = new DatagramPacket(message, message.length);
             dp.setSocketAddress(this.udpServerAddr);
             udpClientSocket.send(dp);

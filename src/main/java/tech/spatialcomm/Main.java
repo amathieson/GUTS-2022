@@ -38,6 +38,7 @@ public class Main {
                     if (packet.getLength() >= 8) {
                         byte[] body = new byte[packet.getLength()];
                         socket.receive(packet);
+                        System.arraycopy(packet, 0, body, 0, body.length);
 
                         // get ID
                         var buf = ByteBuffer.wrap(body, 0, 4);
@@ -47,7 +48,7 @@ public class Main {
                             connection.socketAddress = packet.getSocketAddress();
                             connection.onUDPPacketRecv(body);
                         } else {
-                            System.err.println("bruh i have no idea who is sending this packet");
+                            System.err.println("bruh i have no idea who is sending this packet: " + id);
                         }
                     } else {
                         System.err.println("bruh why is the packet so small");
