@@ -17,36 +17,39 @@ namespace SpatialCommClient.Models
     class WebcamEstimator
     {
         MCvPoint3D32f PNT_NOSE = new MCvPoint3D32f(0, 0, 0);
+        MCvPoint3D32f PNT_NOSE_DIR = new MCvPoint3D32f(0, 0, 1000);
         MCvPoint3D32f PNT_CHIN = new MCvPoint3D32f(0, -330, -65);
         MCvPoint3D32f PNT_LEYE = new MCvPoint3D32f(-225, 170, -135);
         MCvPoint3D32f PNT_REYE = new MCvPoint3D32f(225, 170, -135);
         MCvPoint3D32f PNT_LMOUTH = new MCvPoint3D32f(-150, 150, -125);
         MCvPoint3D32f PNT_RMOUTH = new MCvPoint3D32f(-150, 150, -125);
-
+        public double FPS { get; set; } = 0;
 
         public WebcamEstimator(MainWindowViewModel mwvm)
         {
-            
+
             using (var win = new ImageWindow())
             using (var detector = Dlib.GetFrontalFaceDetector())
             using (var sp = ShapePredictor.Deserialize("Assets/shape_predictor_68_face_landmarks.dat"))
             {
                 VideoCapture capture = new VideoCapture(mwvm.SelectedCamera);
-
+                DateTime lastFrame = DateTime.Now;
                 while (true)
                 {
                     Bitmap bmpSrc = capture.QueryFrame().ToBitmap();
-                    Bitmap bmp = new Bitmap(320, 240);
+                    Bitmap bmp = new Bitmap(160, 120, PixelFormat.Format24bppRgb);
                     Graphics g = Graphics.FromImage(bmp);
-                    g.DrawImage(bmpSrc, 0, 0, 320, 240);
-                    
+                    g.DrawImage(bmpSrc, 0, 0, 160, 120);
+
+
+
 
                     BitmapData bmpdata = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
                     int numbytes = bmpdata.Stride * bmp.Height;
                     byte[] bytedata = new byte[numbytes];
                     IntPtr ptr = bmpdata.Scan0;
                     Marshal.Copy(ptr, bytedata, 0, numbytes);
-                    uint stride = (uint)(bmp.Width * 2);
+                    uint stride = (uint)(bmp.Width * 3);
                     if (stride % 4 != 0)
                         stride = stride + (stride % 4);
                     using (var img = Dlib.LoadImageData<BgrPixel>(bytedata, (uint)bmp.Height, (uint)bmp.Width, stride))
@@ -114,11 +117,14 @@ namespace SpatialCommClient.Models
 
                             _ = CvInvoke.SolvePnP(FACE_PNTS, IMAGE_PNTS, matrix, distort, rotationMatrix, translationVector);
 
-                            mwvm.HeadPosition = translationVector.Data.ToString();
-                            mwvm.HeadRotation = rotationMatrix.Data.ToString();
+                            mwvm.HeadPosition = MatrixToString(translationVector);
+                            mwvm.HeadRotation = MatrixToString(rotationMatrix);
 
-                            //PointF[] pnts = Emgu.CV.CvInvoke.ProjectPoints(new MCvPoint3D32f[] { PNT_NOSE_DIR }, rotationMatrix, translationVector, matrix, distort);
-                            //win.AddOverlay(new OverlayLine(shapes[0].GetPart(33), new DlibDotNet.Point((int)pnts[0].X, (int)pnts[0].Y), new BgrPixel(0, 255, 0)));
+                            FPS = (1000 / ((DateTime.Now - lastFrame).TotalMilliseconds));
+
+                            PointF[] pnts = CvInvoke.ProjectPoints(new MCvPoint3D32f[] { PNT_NOSE_DIR }, rotationMatrix, translationVector, matrix, distort);
+                            win.AddOverlay(new OverlayLine(shapes[0].GetPart(33), new DlibDotNet.Point((int)pnts[0].X, (int)pnts[0].Y), new BgrPixel(0, 255, 0)));
+                            lastFrame = DateTime.Now;
                         }
 
                         foreach (var s in shapes)
@@ -131,6 +137,23 @@ namespace SpatialCommClient.Models
         private PointF ToPointF(DlibDotNet.Point pnt)
         {
             return new PointF(pnt.X, pnt.Y);
+        }
+
+
+        private string MatrixToString(Emgu.CV.Matrix<float> matrix)
+        {
+            string rtn = "{";
+            for (int y = 0; y<matrix.Rows; y++)
+            {
+                rtn += "{";
+                for (int x = 0; x < matrix.Cols; x++)
+                {
+                    rtn += matrix[y, x].ToString() + ", ";
+                }
+                rtn += "}";
+            }
+
+            return rtn;
         }
 
     }
