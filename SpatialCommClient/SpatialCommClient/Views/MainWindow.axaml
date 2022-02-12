@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SpatialCommClient.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="SpatialCommClient.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="SpatialComm By Team Cheese"
+        
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="Black"
+                    TintOpacity="1"
+                    MaterialOpacity="0.65" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Grid RowDefinitions="52,*">
+            <Label Content="SpatialComm V0.1" FontFamily="OCR A" FontSize="24" Margin="10,10,10,10" Grid.Row="0"/>
+            <Grid ColumnDefinitions="*,*" Grid.Row="1">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Server IP" Margin="10,2" VerticalContentAlignment="Center"/>
+                        <TextBox Text="{Binding IPAddressText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Port Control" Margin="10,2" VerticalContentAlignment="Center"/>
+                        <TextBox Text="{Binding PortControlText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Port Audio" Margin="10,2" VerticalContentAlignment="Center"/>
+                        <TextBox Text="{Binding PortAudioText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Username" Margin="10,2" VerticalContentAlignment="Center"/>
+                        <TextBox Text="{Binding UsernameText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+                    </StackPanel>
+                    <Button Content="{Binding ConnectionButtonText}" Command="{Binding ConnectCommand}" IsEnabled="{Binding ConnectionButtonEnabled}" Margin="10,2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                </StackPanel>
+                <ItemsControl Items="{Binding LoggerText}" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Grid>
+        </Grid>
+    </Panel>
+</Window>
