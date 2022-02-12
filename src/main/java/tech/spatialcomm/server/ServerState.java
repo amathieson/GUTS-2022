@@ -22,11 +22,7 @@ public class ServerState {
      * add a user, returns the assigned id
      */
     public int assignUserId() {
-        int id;
-        do {
-            id = RANDOM.nextInt(Integer.MAX_VALUE);
-        } while (connections.containsKey(id));
-        return id;
+        return connections.size();
     }
 
 }

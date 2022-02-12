@@ -12,6 +12,8 @@ CONNECT_OK      0x01
 CONNECT_FAILED  0x02
 PING            0x03
 PONG            0x04
+NEW_USER        0x05
+BYE_USER        0x06
 
 String in packet body should follow this format:
 [length (4 bytes)][ utf-8 encoded string (n bytes, specified by length) ]
@@ -54,4 +56,10 @@ Step 5.
 To terminate the connection, cut off the TCP connection with the server.
 
 Other commands:
-idk add them later (kick, and other stuff)
+When a new user joins, the following packet is sent:
+NEW_USER (user_id: Int32) (username: String)
+
+user_id corresponds to the opus multistream channel index.
+
+When a user leaves, the following packet is sent:
+BYE_USER (user_id: Int32)
