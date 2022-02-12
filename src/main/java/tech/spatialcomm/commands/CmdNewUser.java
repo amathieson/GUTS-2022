@@ -11,7 +11,8 @@ public class CmdNewUser extends Command {
     public int userID;
     public String username;
 
-    public CmdNewUser() {}
+    public CmdNewUser() {
+    }
 
     public CmdNewUser(int userID, String username) {
         this.userID = userID;

@@ -10,7 +10,8 @@ public class CmdByeUser extends Command {
 
     public int userID;
 
-    public CmdByeUser() {}
+    public CmdByeUser() {
+    }
 
     public CmdByeUser(int userID) {
         this.userID = userID;

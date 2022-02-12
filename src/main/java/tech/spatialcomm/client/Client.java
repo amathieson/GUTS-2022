@@ -1,12 +1,10 @@
 package tech.spatialcomm.client;
 
 import tech.spatialcomm.commands.*;
-import tech.spatialcomm.io.IOHelpers;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Random;
 
@@ -52,8 +50,8 @@ public class Client {
                     Commands.writeCommand(new CmdPong(), clientSocket.getOutputStream());
                 }
                 Thread.sleep(100);
+            } catch (Exception ignored) {
             }
-            catch (Exception ignored) {}
         }
     }
 

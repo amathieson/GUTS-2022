@@ -10,7 +10,8 @@ public class CmdConnectFailed extends Command {
 
     public String reason;
 
-    public CmdConnectFailed() {}
+    public CmdConnectFailed() {
+    }
 
     public CmdConnectFailed(String username) {
         this.reason = username;

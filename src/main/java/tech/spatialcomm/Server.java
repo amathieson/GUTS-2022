@@ -1,7 +1,6 @@
 package tech.spatialcomm;
 
 import tech.spatialcomm.commands.CmdByeUser;
-import tech.spatialcomm.commands.CmdNewUser;
 import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 

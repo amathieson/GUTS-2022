@@ -5,37 +5,63 @@ import tech.spatialcomm.commands.Commands;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class IOHelpers {
 
     public static short int16FromByteArray(byte[] bytes) {
-        return (short) (((bytes[0] & 0xFF) << 8) | ((bytes[1] & 0xFF) << 0));
+        return (short) (((bytes[0] & 0xFF) << 8) | ((bytes[1] & 0xFF)));
     }
 
     public static int int32FromByteArray(byte[] bytes) {
         return ((bytes[0] & 0xFF) << 24) |
                 ((bytes[1] & 0xFF) << 16) |
-                ((bytes[2] & 0xFF) << 8 ) |
+                ((bytes[2] & 0xFF) << 8) |
                 ((bytes[3] & 0xFF));
     }
 
     public static long int64FromByteArray(byte[] buf) {
-        return  ((buf[0] & 0xFFL) << 56) |
+        return ((buf[0] & 0xFFL) << 56) |
                 ((buf[1] & 0xFFL) << 48) |
                 ((buf[2] & 0xFFL) << 40) |
                 ((buf[3] & 0xFFL) << 32) |
                 ((buf[4] & 0xFFL) << 24) |
                 ((buf[5] & 0xFFL) << 16) |
-                ((buf[6] & 0xFFL) <<  8) |
-                ((buf[7] & 0xFFL) <<  0) ;
+                ((buf[6] & 0xFFL) << 8) |
+                ((buf[7] & 0xFFL));
+    }
+
+    public static byte[] byteArrayFromInt64(long buf) {
+        return new byte[]{
+                (byte) (buf >> 56),
+                (byte) (buf >> 48),
+                (byte) (buf >> 40),
+                (byte) (buf >> 32),
+                (byte) (buf >> 24),
+                (byte) (buf >> 16),
+                (byte) (buf >> 8),
+                (byte) (buf),
+        };
+    }
+
+    public static byte[] byteArrayFromInt32(int buf) {
+        return new byte[]{
+                (byte) (buf >> 24),
+                (byte) (buf >> 16),
+                (byte) (buf >> 8),
+                (byte) (buf),
+        };
+    }
+
+    public static byte[] byteArrayFromInt16(short buf) {
+        return new byte[]{
+                (byte) (buf >> 8),
+                (byte) (buf),
+        };
     }
 
     public static void writeInt16(OutputStream os, short i) throws IOException {
-        var buf = ByteBuffer.allocate(2);
-        buf.putShort(i);
-        os.write(buf.array());
+        os.write(byteArrayFromInt16(i));
     }
 
     public static void writeCommandType(OutputStream os, Commands commands) throws IOException {
@@ -43,15 +69,11 @@ public class IOHelpers {
     }
 
     public static void writeInt32(OutputStream os, int i) throws IOException {
-        var buf = ByteBuffer.allocate(4);
-        buf.putInt(i);
-        os.write(buf.array());
+        os.write(byteArrayFromInt32(i));
     }
 
     public static void writeInt64(OutputStream os, long i) throws IOException {
-        var buf = ByteBuffer.allocate(8);
-        buf.putLong(i);
-        os.write(buf.array());
+        os.write(byteArrayFromInt64(i));
     }
 
     public static void writeUTF8String(OutputStream os, String string) throws IOException {
