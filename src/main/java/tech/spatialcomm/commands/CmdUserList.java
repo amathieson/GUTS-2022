@@ -31,13 +31,17 @@ public class CmdUserList extends Command {
 
     @Override
     protected void writeTo(OutputStream stream) throws IOException {
-        IOHelpers.writeInt32(stream, this.serverState.userNames.size());
+//        IOHelpers.writeInt32(stream, this.serverState.userNames.size());
         this.serverState.userNames.forEach(((id, name) -> {
-            try {
-                IOHelpers.writeInt32(stream, id);
-                IOHelpers.writeUTF8String(stream, name);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (this.serverState.connections.get(id) != null) {
+                if (this.serverState.connections.get(id).isAlive()) {
+                    try {
+                        IOHelpers.writeInt32(stream, id);
+                        IOHelpers.writeUTF8String(stream, name);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }));
     }

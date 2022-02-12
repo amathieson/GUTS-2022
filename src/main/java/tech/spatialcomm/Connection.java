@@ -58,6 +58,7 @@ public class Connection {
         if (!handshaked) {
             if (command instanceof CmdConnect cmd) {
                 this.username = cmd.username;
+                this.serverState.userNames.put(this.userID, this.username);
                 this.handshaked = true;
                 sendCommand(new CmdConnectOk(this.userID));
                 /*for (var conn : this.serverState.connections.values()) {

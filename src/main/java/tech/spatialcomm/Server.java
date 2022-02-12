@@ -89,9 +89,7 @@ public class Server {
                 } else {
                     connection.sendCommand(new CmdPing());
 
-                    for (Connection c: serverState.TCPConnections) {
-                        c.sendCommand(new CmdUserList(serverState));
-                    }
+                    connection.sendCommand(new CmdUserList(serverState));
                 }
             }
         } catch (Exception ex) {
