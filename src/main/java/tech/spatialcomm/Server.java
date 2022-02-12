@@ -1,5 +1,6 @@
 package tech.spatialcomm;
 
+import tech.spatialcomm.commands.CmdConnectFailed;
 import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 
@@ -12,6 +13,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
+
+    public static final int MAX_USERS = 8;
 
     private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
 
@@ -71,6 +74,10 @@ public class Server {
 
     public void handleClient(Connection connection) {
         try {
+            if (this.serverState.connections.size() > MAX_USERS) {
+                connection.sendCommand(new CmdConnectFailed("Too many users, at most " + MAX_USERS + " allowed"));
+                return;
+            }
             SERVICE.submit(connection::recvLoop);
             while (connection.isAlive()) {
                 Thread.sleep(1000L);
