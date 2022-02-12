@@ -62,6 +62,12 @@ namespace SpatialCommClient.ViewModels
                 ConnectionButtonEnabled = true;
                 ConnectionButtonText = "Connected";
 
+                if(t.Result == -1)
+                {
+                    ConnectionButtonText = "Connect";
+                    return;
+                }
+
                 AudioRXThread = Task.Run(() => { networkMarshal.AudioListener(); });
                 AudioTXThread = Task.Run(() => { networkMarshal.SocketEmitter(false); });
                 ControlRXThread = Task.Run(() => { networkMarshal.ControlListener(); });

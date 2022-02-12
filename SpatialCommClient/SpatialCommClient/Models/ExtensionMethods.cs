@@ -20,5 +20,17 @@ namespace SpatialCommClient.Models
             for (int i = 0; i < n; i++)
                 queue.Enqueue(data[i]);
         }
+
+        /// <summary>
+        /// Reverses the contents of a span and returns it. WARNING: This mutates the span!
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="span"></param>
+        /// <returns>The same span but reversed</returns>
+        public static Span<T> ReverseSpan<T>(this Span<T> span)
+        {
+            span.Reverse();
+            return span;
+        }
     }
 }

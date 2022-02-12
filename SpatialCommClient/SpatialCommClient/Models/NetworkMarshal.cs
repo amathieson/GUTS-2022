@@ -13,22 +13,7 @@ namespace SpatialCommClient.Models
 {
     public class NetworkMarshal : IDisposable
     {
-        // State object for receiving data from remote device.  
-        public class StateObject
-        {
-            // Client socket.  
-            public Socket workSocket = null;
-            // Size of receive buffer.  
-            public const int BufferSize = 256;
-            // Receive buffer.  
-            public byte[] buffer = new byte[BufferSize];
-        }
-
-        public class Event
-        {
-            public delegate void EventHandler_AudioData(byte[] AudioData);
-        }
-
+        public delegate void EventHandler_AudioData(Span<byte> AudioData);
 
         private Socket socketAudio;
         private Socket socketControl;
@@ -39,12 +24,12 @@ namespace SpatialCommClient.Models
             new ManualResetEvent(false);
         private static ManualResetEvent receiveDone =
             new ManualResetEvent(false);
-        private static readonly Queue<byte> recvBuffer = new(2048);
 
         private static ObservableCollection<string> logger;
 
-        public event Event.EventHandler_AudioData AudioDataRecived;
+        public event EventHandler_AudioData AudioDataRecived;
 
+        //TODO: To avoid unnecessary memory copies we might want to use Span<byte> which allows data like this to be efficiently passed around.
         private ConcurrentQueue<byte[]> ControlMessageQueue = new ConcurrentQueue<byte[]>();
         private ConcurrentQueue<byte[]> AudioMessageQueue = new ConcurrentQueue<byte[]>();
 
@@ -85,141 +70,34 @@ namespace SpatialCommClient.Models
             //ReceiveAsync(socketControl);
             //receiveDone.WaitOne();
 
-            byte[] buffer = new byte[1024];
+            Span<byte> buffer = new byte[1024];
             int bytesRead = 0;
 
-            while (recvBuffer.Count < 2)
-            {
-                bytesRead = socketControl.Receive(buffer, SocketFlags.None);
-                if (bytesRead > 0)
-                    recvBuffer.EnqueueMany(buffer, bytesRead);
-            }
+            //This is a TCP message we can relatively sure it will arrive in it's entireity
+            bytesRead = socketControl.Receive(buffer, SocketFlags.None);
 
-            if (BitConverter.ToInt16(recvBuffer.DequeueMany(2).Reverse().ToArray()) != (short)NetworkPacketId.CONNECT_OK)
+            if (BitConverter.ToInt16(buffer[0..2].ReverseSpan()) != (short)NetworkPacketId.CONNECT_OK)
             {
                 //Server didn't like us, just give up
                 logger.Add("Failed to connect to server! Server responded:");
-                logger.Add(Encoding.UTF8.GetString(recvBuffer.Skip(5).ToArray()));
+                logger.Add(Encoding.UTF8.GetString(buffer[7..].ToArray()));
                 return -1;
             }
 
 
-            logger.Add("Connected successfully! - UserID: " + BitConverter.ToInt32(recvBuffer.DequeueMany(4).Reverse().ToArray()));
+            logger.Add("Connected successfully! - UserID: " + BitConverter.ToInt32(buffer[2..7].ReverseSpan()));
 
             //Ready to start sending data
             return 1;
         }
 
-        private static void ConnectCallback(IAsyncResult ar)
-        {
-            try
-            {
-                // Retrieve the socket from the state object.  
-                Socket client = (Socket)ar.AsyncState;
-
-                // Complete the connection.  
-                client.EndConnect(ar);
-
-                System.Diagnostics.Debug.WriteLine("Socket connected to {0}",
-                    client.RemoteEndPoint.ToString());
-
-                // Signal that the connection has been made.  
-                connectDone.Set();
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.ToString());
-            }
-        }
-
-        private static void ReceiveAsync(Socket client)
-        {
-            try
-            {
-                // Create the state object.  
-                StateObject state = new StateObject();
-                state.workSocket = client;
-
-                // Begin receiving the data from the remote device.  
-                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReceiveCallback), state);
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.ToString());
-            }
-        }
-
-        private static void ReceiveCallback(IAsyncResult ar)
-        {
-            try
-            {
-                // Retrieve the state object and the client socket
-                // from the asynchronous state object.  
-                StateObject state = (StateObject)ar.AsyncState;
-                Socket client = state.workSocket;
-
-                // Read data from the remote device.  
-                int bytesRead = client.EndReceive(ar);
-
-                if (bytesRead > 0)
-                {
-                    // There might be more data, so store the data received so far.  
-                    for (int i = 0; i < bytesRead; i++)
-                        recvBuffer.Enqueue(state.buffer[i]);
-
-                    // Get the rest of the data.  
-                    client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                        new AsyncCallback(ReceiveCallback), state);
-                }
-                else
-                {
-                    // All the data has arrived
-                    // Signal that all bytes have been received.  
-                    receiveDone.Set();
-                }
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.ToString());
-            }
-        }
-
-        private static void SendAsync(Socket client, byte[] data)
-        {
-            // Begin sending the data to the remote device.  
-            client.BeginSend(data, 0, data.Length, 0,
-                new AsyncCallback(SendCallback), client);
-        }
-
-        private static void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                // Retrieve the socket from the state object.  
-                Socket client = (Socket)ar.AsyncState;
-
-                // Complete sending the data to the remote device.  
-                int bytesSent = client.EndSend(ar);
-                System.Diagnostics.Debug.WriteLine("Sent {0} bytes to server.", bytesSent);
-
-                // Signal that all bytes have been sent.  
-                sendDone.Set();
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.ToString());
-            }
-        }
-
-
         public void AudioListener()
         {
             while (socketAudio.Connected)
             {
-                byte[] buffer = new byte[4096 * 100];
-                socketControl.Receive(buffer);
-                AudioDataRecived?.Invoke(buffer);
+                Span<byte> buffer = new byte[4096 * 100];
+                int recv = socketAudio.Receive(buffer);
+                AudioDataRecived?.Invoke(buffer.Slice(0, recv));
             }
         }
 
@@ -232,12 +110,11 @@ namespace SpatialCommClient.Models
 
                 if (len > 0)
                 {
-                    logger.Add("Recived " + buffer);
                     switch (BitConverter.ToInt16(new byte[] { buffer[1], buffer[0] }))
                     {
                         case (short)NetworkPacketId.PING:
-                            logger.Add("Recived ping");
-                            this.SendControlMessage(MakeMessage(NetworkPacketId.PONG, new byte[] { }));
+                            logger.Add("Received ping!");
+                            SendControlMessage(MakeMessage(NetworkPacketId.PONG, new byte[] { }));
                             break;
 
                     }
@@ -254,9 +131,9 @@ namespace SpatialCommClient.Models
             {
                 if (Queue.Count > 0)
                 {
-                    _ = Queue.TryDequeue(out byte[] buff);
-                    if (buff != null)
-                        socket.Send(buff);
+                    if(Queue.TryDequeue(out byte[] buff))
+                        if (buff != null)
+                            socket.Send(buff);
                 }
             }
         }
@@ -266,6 +143,7 @@ namespace SpatialCommClient.Models
         {
             AudioMessageQueue.Enqueue(data);
         }
+
         public void SendControlMessage(byte[] data)
         {
             ControlMessageQueue.Enqueue(data);
