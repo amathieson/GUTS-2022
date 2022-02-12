@@ -16,7 +16,8 @@ public enum Commands {
     PING(0x03),
     PONG(0x04),
     NEW_USER(0x05),
-    BYE_USER(0x06);
+    BYE_USER(0x06),
+    USER_LIST(0x07);
 
     public final short id;
 
@@ -35,6 +36,7 @@ public enum Commands {
         REGISTRY.put(PONG, CmdPong.class);
         REGISTRY.put(NEW_USER, CmdNewUser.class);
         REGISTRY.put(BYE_USER, CmdByeUser.class);
+        REGISTRY.put(USER_LIST, CmdUserList.class);
     }
 
     public static Command readCommand(InputStream is) throws IOException {

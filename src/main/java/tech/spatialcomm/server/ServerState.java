@@ -3,6 +3,8 @@ package tech.spatialcomm.server;
 import tech.spatialcomm.Connection;
 
 import java.net.DatagramSocket;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,6 +14,8 @@ public class ServerState {
     private static final Random RANDOM = new Random();
 
     public final Map<Integer, Connection> connections = new ConcurrentHashMap<>();
+    public final Map<Integer, String> userNames = new ConcurrentHashMap<>();
+    public final List<Connection> TCPConnections = new LinkedList<>();
     public final DatagramSocket datagramSocket;
 
     public ServerState(DatagramSocket datagramSocket) {

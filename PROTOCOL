@@ -14,6 +14,7 @@ PING            0x03
 PONG            0x04
 NEW_USER        0x05
 BYE_USER        0x06
+USER_LIST       0x07
 
 String in packet body should follow this format:
 [length (4 bytes)][ utf-8 encoded string (n bytes, specified by length) ]
@@ -63,3 +64,6 @@ user_id corresponds to the opus multistream channel index.
 
 When a user leaves, the following packet is sent:
 BYE_USER (user_id: Int32)
+
+When a user joins, the following packet is sent to all clients:
+USER_LIST (connected_users: Int32) [ (user_id: Int32) (username: String) ]

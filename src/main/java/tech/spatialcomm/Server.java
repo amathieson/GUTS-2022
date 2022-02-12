@@ -2,6 +2,7 @@ package tech.spatialcomm;
 
 import tech.spatialcomm.commands.CmdByeUser;
 import tech.spatialcomm.commands.CmdPing;
+import tech.spatialcomm.commands.CmdUserList;
 import tech.spatialcomm.server.ServerState;
 
 import java.io.IOException;
@@ -32,7 +33,9 @@ public class Server {
                 System.out.println("TCP Listening on: " + socket.getLocalSocketAddress());
                 while (true) {
                     Connection conn = new Connection(serverState, socket.accept(), System.currentTimeMillis());
+                    serverState.TCPConnections.add(conn);
                     System.out.println("tech.spatialcomm.Connection received from " + conn.toString());
+
                     SERVICE.submit(() -> handleClient(conn));
                 }
             } catch (Exception ex) {
@@ -85,6 +88,10 @@ public class Server {
                     break;
                 } else {
                     connection.sendCommand(new CmdPing());
+
+                    for (Connection c: serverState.TCPConnections) {
+                        c.sendCommand(new CmdUserList(serverState));
+                    }
                 }
             }
         } catch (Exception ex) {

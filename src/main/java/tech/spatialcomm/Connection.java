@@ -60,11 +60,11 @@ public class Connection {
                 this.username = cmd.username;
                 this.handshaked = true;
                 sendCommand(new CmdConnectOk(this.userID));
-                for (var conn : this.serverState.connections.values()) {
+                /*for (var conn : this.serverState.connections.values()) {
                     if (conn != this && conn != null) {
                         sendCommand(new CmdNewUser(this.userID, this.username));
                     }
-                }
+                }*/
             } else {
                 sendCommand(new CmdConnectFailed("CONNECT expected"));
             }
