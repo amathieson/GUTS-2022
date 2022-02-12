@@ -28,7 +28,7 @@ namespace SpatialCommClient
                 };
             }
 
-            ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime).Exit += App_Exit;
+            //((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime).Exit += App_Exit;
 
             base.OnFrameworkInitializationCompleted();
         }

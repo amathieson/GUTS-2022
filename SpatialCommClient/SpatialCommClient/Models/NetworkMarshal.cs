@@ -36,6 +36,9 @@ namespace SpatialCommClient.Models
 
         private static ObservableCollection<string> logger;
 
+        public event EventHandler AudioDataRecived;
+
+
         public NetworkMarshal(ObservableCollection<string> myLogger)
         {
             socketAudio = new Socket(SocketType.Dgram, ProtocolType.Udp);
@@ -64,12 +67,10 @@ namespace SpatialCommClient.Models
 
         public int ConnectToServer(string host, int portControl, int portAudio, string username)
         {
-            socketControl.BeginConnect(Dns.GetHostEntry(host).AddressList[0], portControl, new AsyncCallback(ConnectCallback), socketControl);
-            connectDone.WaitOne();
-            socketAudio.BeginConnect(Dns.GetHostEntry(host).AddressList[0], portAudio, new AsyncCallback(ConnectCallback), socketAudio);
-            connectDone.WaitOne();
-            SendAsync(socketControl, MakeMessage(NetworkPacketId.CONNECT, StringToBytes(username)));
-            sendDone.WaitOne();
+            socketControl.Connect(Dns.GetHostEntry(host).AddressList[0], portControl);
+            socketAudio.Connect(Dns.GetHostEntry(host).AddressList[0], portAudio);
+            socketControl.Send(MakeMessage(NetworkPacketId.CONNECT, StringToBytes(username)));
+
             //Wait for reply
             ReceiveAsync(socketControl);
             receiveDone.WaitOne();
@@ -82,7 +83,8 @@ namespace SpatialCommClient.Models
                 return -1;
             }
 
-            logger.Add("Connected successfully!");
+            
+            logger.Add("Connected successfully! - UserID: " + BitConverter.ToInt32(recvBuffer.DequeueMany(4).Reverse().ToArray()));
 
             //Ready to start sending data
             return 1;
