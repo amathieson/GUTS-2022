@@ -15,5 +15,10 @@ namespace SpatialCommClient.Models
                 ret[i] = queue.Dequeue();
             return ret;
         }
+        public static void EnqueueMany<T>(this Queue<T> queue, T[] data, int n)
+        {
+            for (int i = 0; i < n; i++)
+                queue.Enqueue(data[i]);
+        }
     }
 }

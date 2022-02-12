@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 
 namespace SpatialCommClient.Models
 {
@@ -23,6 +24,12 @@ namespace SpatialCommClient.Models
             public byte[] buffer = new byte[BufferSize];
         }
 
+        public class Event
+        {
+            public delegate void EventHandler_AudioData(byte[] AudioData);
+        }
+
+
         private Socket socketAudio;
         private Socket socketControl;
         // ManualResetEvent instances signal completion.  
@@ -36,7 +43,10 @@ namespace SpatialCommClient.Models
 
         private static ObservableCollection<string> logger;
 
-        public event EventHandler AudioDataRecived;
+        public event Event.EventHandler_AudioData AudioDataRecived;
+
+        private ConcurrentQueue<byte[]> ControlMessageQueue = new ConcurrentQueue<byte[]>();
+        private ConcurrentQueue<byte[]> AudioMessageQueue = new ConcurrentQueue<byte[]>();
 
 
         public NetworkMarshal(ObservableCollection<string> myLogger)
@@ -57,12 +67,12 @@ namespace SpatialCommClient.Models
 
         private byte[] StringToBytes(string str)
         {
-            return BitConverter.GetBytes(str.Length).Concat(Encoding.UTF8.GetBytes(str)).ToArray();
+            return BitConverter.GetBytes(str.Length).Reverse().Concat(Encoding.UTF8.GetBytes(str)).ToArray();
         }
 
         private byte[] MakeMessage(NetworkPacketId id, byte[] data)
         {
-            return BitConverter.GetBytes((short)id).Concat(data).ToArray();
+            return BitConverter.GetBytes((short)id).Reverse().Concat(data).ToArray();
         }
 
         public int ConnectToServer(string host, int portControl, int portAudio, string username)
@@ -72,10 +82,20 @@ namespace SpatialCommClient.Models
             socketControl.Send(MakeMessage(NetworkPacketId.CONNECT, StringToBytes(username)));
 
             //Wait for reply
-            ReceiveAsync(socketControl);
-            receiveDone.WaitOne();
+            //ReceiveAsync(socketControl);
+            //receiveDone.WaitOne();
 
-            if(BitConverter.ToInt16(recvBuffer.DequeueMany(2).Reverse().ToArray()) != (short)NetworkPacketId.CONNECT_OK)
+            byte[] buffer = new byte[1024];
+            int bytesRead = 0;
+
+            while (recvBuffer.Count < 2)
+            {
+                bytesRead = socketControl.Receive(buffer, SocketFlags.None);
+                if (bytesRead > 0)
+                    recvBuffer.EnqueueMany(buffer, bytesRead);
+            }
+
+            if (BitConverter.ToInt16(recvBuffer.DequeueMany(2).Reverse().ToArray()) != (short)NetworkPacketId.CONNECT_OK)
             {
                 //Server didn't like us, just give up
                 logger.Add("Failed to connect to server! Server responded:");
@@ -83,7 +103,7 @@ namespace SpatialCommClient.Models
                 return -1;
             }
 
-            
+
             logger.Add("Connected successfully! - UserID: " + BitConverter.ToInt32(recvBuffer.DequeueMany(4).Reverse().ToArray()));
 
             //Ready to start sending data
@@ -145,7 +165,7 @@ namespace SpatialCommClient.Models
                 if (bytesRead > 0)
                 {
                     // There might be more data, so store the data received so far.  
-                    for(int i = 0; i < bytesRead; i++)
+                    for (int i = 0; i < bytesRead; i++)
                         recvBuffer.Enqueue(state.buffer[i]);
 
                     // Get the rest of the data.  
@@ -191,5 +211,65 @@ namespace SpatialCommClient.Models
                 System.Diagnostics.Debug.WriteLine(e.ToString());
             }
         }
+
+
+        public void AudioListener()
+        {
+            while (socketAudio.Connected)
+            {
+                byte[] buffer = new byte[4096 * 100];
+                socketControl.Receive(buffer);
+                AudioDataRecived?.Invoke(buffer);
+            }
+        }
+
+        public void ControlListener()
+        {
+            while (socketControl.Connected)
+            {
+                byte[] buffer = new byte[2];
+                int len = socketControl.Receive(buffer, 2, SocketFlags.None);
+
+                if (len > 0)
+                {
+                    logger.Add("Recived " + buffer);
+                    switch (BitConverter.ToInt16(new byte[] { buffer[1], buffer[0] }))
+                    {
+                        case (short)NetworkPacketId.PING:
+                            logger.Add("Recived ping");
+                            this.SendControlMessage(MakeMessage(NetworkPacketId.PONG, new byte[] { }));
+                            break;
+
+                    }
+                }
+
+            }
+        }
+
+        public void SocketEmitter(bool isControl)
+        {
+            Socket socket = (isControl ? socketControl : socketAudio);
+            ConcurrentQueue<byte[]> Queue = (isControl ? ControlMessageQueue : AudioMessageQueue);
+            while (socket.Connected)
+            {
+                if (Queue.Count > 0)
+                {
+                    _ = Queue.TryDequeue(out byte[] buff);
+                    if (buff != null)
+                        socket.Send(buff);
+                }
+            }
+        }
+
+
+        public void SendAudioData(byte[] data)
+        {
+            AudioMessageQueue.Enqueue(data);
+        }
+        public void SendControlMessage(byte[] data)
+        {
+            ControlMessageQueue.Enqueue(data);
+        }
+
     }
 }
