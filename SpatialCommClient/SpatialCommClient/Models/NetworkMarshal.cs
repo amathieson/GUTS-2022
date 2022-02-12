@@ -8,15 +8,18 @@ using System.Net;
 using System.Threading;
 using System.Collections.ObjectModel;
 using System.Collections.Concurrent;
+using System.Buffers.Binary;
 
 namespace SpatialCommClient.Models
 {
     public class NetworkMarshal : IDisposable
     {
-        public delegate void EventHandler_AudioData(Span<byte> AudioData);
+        public delegate void EventHandler_AudioData(byte[] AudioData);
 
         private Socket socketAudio;
         private Socket socketControl;
+        private int userID = 0;
+        private long packetID = 0;
         // ManualResetEvent instances signal completion.  
         private static ManualResetEvent connectDone =
             new ManualResetEvent(false);
@@ -84,7 +87,9 @@ namespace SpatialCommClient.Models
                 return -1;
             }
 
-            logger.Add("Connected successfully! - UserID: " + BitConverter.ToUInt32(buffer.Slice(2, 4).ReverseSpan().ToArray()));
+            userID = BitConverter.ToInt32(buffer.Slice(2, 4).ReverseSpan().ToArray());
+
+            logger.Add("Connected successfully! - UserID: " + userID);
 
             //Ready to start sending data
             return 1;
@@ -94,9 +99,9 @@ namespace SpatialCommClient.Models
         {
             while (socketAudio.Connected)
             {
-                Span<byte> buffer = new byte[4096 * 100];
+                byte[] buffer = new byte[4096 * 100];
                 int recv = socketAudio.Receive(buffer);
-                AudioDataRecived?.Invoke(buffer.Slice(0, recv));
+                AudioDataRecived?.Invoke(buffer.Take(recv).ToArray());
             }
         }
 
@@ -137,6 +142,27 @@ namespace SpatialCommClient.Models
             }
         }
 
+        private byte[] MakeAudioMessage(byte[] buff)
+        {
+            var ret = new byte[buff.Length + 12];
+            BinaryPrimitives.WriteInt32BigEndian(ret, userID);
+            Array.Copy(BitConverter.GetBytes(packetID++).Reverse().ToArray(), 0, ret, 4, 8);
+            buff.CopyTo(ret, 12);
+            return ret;
+        }
+
+        public void AudioSocketEmitter()
+        {
+            while (socketAudio.Connected)
+            {
+                if (AudioMessageQueue.Count > 0)
+                {
+                    if (AudioMessageQueue.TryDequeue(out byte[] buff))
+                        if (buff != null)
+                            socketAudio.Send(MakeAudioMessage(buff));
+                }
+            }
+        }
 
         public void SendAudioData(byte[] data)
         {

@@ -39,9 +39,14 @@ namespace SpatialCommClient.Models
             return decoder.DecodeFloat(data, data.Length, out int decodedLength).Take(decodedLength).ToArray();
         }
 
-        public byte[] EncodeSamples(float[] data)
+        public Span<byte> EncodeSamples(float[] data)
         {
-            return encoder.EncodeFloat(data, data.Length, out int decodedLength).Take(decodedLength).ToArray();
+            return encoder.EncodeFloat(data, data.Length, out int decodedLength).AsSpan()[..decodedLength];
+        }
+
+        public Span<byte> EncodeSamples(byte[] data)
+        {
+            return encoder.Encode(data, data.Length, out int decodedLength).AsSpan()[..decodedLength];
         }
 
         public void Dispose()
