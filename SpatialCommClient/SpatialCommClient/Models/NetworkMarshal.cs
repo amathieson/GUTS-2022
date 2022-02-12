@@ -84,8 +84,7 @@ namespace SpatialCommClient.Models
                 return -1;
             }
 
-
-            logger.Add("Connected successfully! - UserID: " + BitConverter.ToInt32(buffer[2..7].ReverseSpan()));
+            logger.Add("Connected successfully! - UserID: " + BitConverter.ToUInt32(buffer.Slice(2, 4).ReverseSpan().ToArray()));
 
             //Ready to start sending data
             return 1;
