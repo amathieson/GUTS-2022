@@ -96,6 +96,7 @@ namespace SpatialCommClient.Models
             {
                 Span<byte> buffer = new byte[4096 * 100];
                 int recv = socketAudio.Receive(buffer);
+                System.Diagnostics.Debug.WriteLine(recv);
                 AudioDataRecived?.Invoke(buffer.Slice(0, recv));
             }
         }
@@ -114,6 +115,16 @@ namespace SpatialCommClient.Models
                         case (short)NetworkPacketId.PING:
                             logger.Add("Received ping!");
                             SendControlMessage(MakeMessage(NetworkPacketId.PONG, new byte[] { }));
+                            break;
+                        case (short)NetworkPacketId.NEW_USER:
+                            logger.Add("Received NEW_USER!");
+                            break;
+                        case (short)NetworkPacketId.BYE_USER:
+                            logger.Add("Received BYE_USER!");
+                            break;
+                        case (short)NetworkPacketId.USER_LIST:
+                            logger.Add("Received USER_LIST!");
+                            ReadUserList(socketControl);
                             break;
 
                     }
@@ -146,6 +157,28 @@ namespace SpatialCommClient.Models
         public void SendControlMessage(byte[] data)
         {
             ControlMessageQueue.Enqueue(data);
+        }
+
+
+        private void ReadUserList(Socket SocketControl)
+        {
+            Span<byte> buffer = new byte[4096];
+            int len = socketControl.Receive(buffer, SocketFlags.None);
+            if (len > 0)
+            {
+                int baseAddr = 0;
+                int userID = -1;
+                while (userID!=0) {
+                    userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
+                    if (userID == 0)
+                        break;
+                    int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
+                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 8, strlength).ToArray());
+                    logger.Add(userID + " - " + username);
+
+                    baseAddr += strlength + 8;
+                }
+            }
         }
 
     }
