@@ -31,6 +31,7 @@ namespace SpatialCommClient.ViewModels
         [Reactive] public int SelectedCamera { get; set; } = 0;
         public ObservableCollection<string> LoggerText { get; } = new();
         public ObservableCollection<string> Cameras { get; } = new();
+        public ObservableCollection<string> Players { get; } = new();
         public ICommand ConnectCommand { get; private set; }
         #endregion
 

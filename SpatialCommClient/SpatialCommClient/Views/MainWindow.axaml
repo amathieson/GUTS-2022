@@ -54,9 +54,9 @@
       </Grid>
 
       <Grid Grid.Row="2" ColumnDefinitions="*,*">
-        <Canvas Grid.Column="0" Background="DarkGray">
-          <TextBlock>Connected Clients</TextBlock>
-        </Canvas>
+        <ScrollViewer Grid.Column="0">
+          <ItemsControl Items="{Binding Players}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></ItemsControl>
+        </ScrollViewer>
         <StackPanel Grid.Column="1">
           <StackPanel Orientation="Horizontal">
             <Label Content="Head Rotation" Margin="10,2" VerticalContentAlignment="Center"/>
