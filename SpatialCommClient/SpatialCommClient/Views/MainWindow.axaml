@@ -63,6 +63,22 @@
           <ItemsControl Items="{Binding LoggerText}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </ScrollViewer>
       </Grid>
+
+      <Grid Grid.Row="2" ColumnDefinitions="*,*">
+        <ScrollViewer Grid.Column="0">
+          <ItemsControl Items="{Binding Players}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></ItemsControl>
+        </ScrollViewer>
+        <StackPanel Grid.Column="1">
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Head Rotation" Margin="10,2" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding HeadRotation}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top"></TextBox>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Head Position" Margin="10,2" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding HeadPosition}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top"></TextBox>
+          </StackPanel>
+        </StackPanel>
+      </Grid>
     </Grid>
   </Panel>
 </Window>

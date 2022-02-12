@@ -37,20 +37,25 @@ namespace SpatialCommClient.ViewModels
         [Reactive] public string PortControlText { get; set; } = "25567";
         [Reactive] public string PortAudioText { get; set; } = "25567";
         [Reactive] public string UsernameText { get; set; } = "anonymous";
+        [Reactive] public string HeadPosition { get; set; } = "-000.00, -000.00, -000.00";
+        [Reactive] public string HeadRotation { get; set; } = "-000.00, -000.00, -000.00";
         [Reactive] public string ConnectionButtonText { get; private set; } = "Connect";
         [Reactive] public bool ConnectionButtonEnabled { get; private set; } = true;
         public ObservableCollection<string> AudioInputDevices { get; } = new();
         public ObservableCollection<string> AudioOutputDevices { get; } = new();
         [Reactive] public string SelectedAudioInputDevice { get; set; }
         [Reactive] public string SelectedAudioOutputDevice { get; set; }
+        [Reactive] public int SelectedCamera { get; set; } = 0;
         public ObservableCollection<string> LoggerText { get; } = new();
+        public ObservableCollection<string> Cameras { get; } = new();
+        public ObservableCollection<string> Players { get; } = new();
         public ICommand ConnectCommand { get; private set; }
         #endregion
 
         public MainWindowViewModel()
         {
             CreateCommands();
-
+            
             networkMarshal = new Models.NetworkMarshal(LoggerText);
             alManager = new Models.OpenALManager();
             audioTranscoder = new Models.AudioTranscoder(1);
@@ -98,6 +103,8 @@ namespace SpatialCommClient.ViewModels
                 audioTXThread = Task.Run(() => { networkMarshal.AudioSocketEmitter(); });
                 controlRXThread = Task.Run(() => { networkMarshal.ControlListener(); });
                 controlTXThread = Task.Run(() => { networkMarshal.SocketEmitter(true); });
+                Task.Run(() => { new Models.WebcamEstimator(this); });
+
             });
         }
 

@@ -13,5 +13,8 @@ namespace SpatialCommClient.Models
         CONNECT_FAILED  = 0x02,
         PING            = 0x03,
         PONG            = 0x04,
+        NEW_USER        = 0x05,
+        BYE_USER        = 0x06,
+        USER_LIST       = 0x07
     }
 }
