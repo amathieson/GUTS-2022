@@ -6,18 +6,31 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using OpenTK.Audio.OpenAL;
+using System.Threading;
+using CircularBuffer;
 
 namespace SpatialCommClient.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        private static readonly int AUDIO_CHUNK_TIME_MS = 20;
+        private static readonly int AUDIO_CAPTURE_BUFFER_SIZE = Models.OpenALManager.ComputeBufferSize(Models.AudioTranscoder.SAMPLE_RATE, AUDIO_CHUNK_TIME_MS);
+
         private Models.NetworkMarshal networkMarshal;
+        private Models.OpenALManager alManager;
+        private Models.AudioTranscoder audioTranscoder;
 
-        private Task AudioRXThread;
-        private Task AudioTXThread;
+        private Task audioRXThread;
+        private Task audioTXThread;
 
-        private Task ControlRXThread;
-        private Task ControlTXThread;
+        private Task controlRXThread;
+        private Task controlTXThread;
+
+        private Timer audioCaptureLoop;
+
+        //Initialize a double sized circular buffer to store audio data.
+        private CircularBuffer<byte> capturedAudio = new CircularBuffer<byte>(AUDIO_CAPTURE_BUFFER_SIZE*2);
 
         #region Bindable Objects
         [Reactive] public string IPAddressText { get; set; } = "spatialcomm.tech";
@@ -28,6 +41,10 @@ namespace SpatialCommClient.ViewModels
         [Reactive] public string HeadRotation { get; set; } = "-000.00, -000.00, -000.00";
         [Reactive] public string ConnectionButtonText { get; private set; } = "Connect";
         [Reactive] public bool ConnectionButtonEnabled { get; private set; } = true;
+        public ObservableCollection<string> AudioInputDevices { get; } = new();
+        public ObservableCollection<string> AudioOutputDevices { get; } = new();
+        [Reactive] public string SelectedAudioInputDevice { get; set; }
+        [Reactive] public string SelectedAudioOutputDevice { get; set; }
         [Reactive] public int SelectedCamera { get; set; } = 0;
         public ObservableCollection<string> LoggerText { get; } = new();
         public ObservableCollection<string> Cameras { get; } = new();
@@ -40,6 +57,13 @@ namespace SpatialCommClient.ViewModels
             CreateCommands();
             
             networkMarshal = new Models.NetworkMarshal(LoggerText);
+            alManager = new Models.OpenALManager();
+            audioTranscoder = new Models.AudioTranscoder(1);
+
+            foreach (string d in alManager.ListInputDevices())
+                AudioInputDevices.Add(d);
+            foreach (string d in alManager.ListOutputDevices())
+                AudioOutputDevices.Add(d);
 
             LoggerText.Add("Initilised!");
         }
@@ -73,14 +97,53 @@ namespace SpatialCommClient.ViewModels
                     return;
                 }
 
-                AudioRXThread = Task.Run(() => { networkMarshal.AudioListener(); });
-                AudioTXThread = Task.Run(() => { networkMarshal.SocketEmitter(false); });
-                ControlRXThread = Task.Run(() => { networkMarshal.ControlListener(); });
-                ControlTXThread = Task.Run(() => { networkMarshal.SocketEmitter(true); });
+                StartAudioService();
+
+                audioRXThread = Task.Run(() => { networkMarshal.AudioListener(); });
+                audioTXThread = Task.Run(() => { networkMarshal.AudioSocketEmitter(); });
+                controlRXThread = Task.Run(() => { networkMarshal.ControlListener(); });
+                controlTXThread = Task.Run(() => { networkMarshal.SocketEmitter(true); });
                 Task.Run(() => { new Models.WebcamEstimator(this); });
 
             });
-            
+        }
+
+        private void StartAudioService()
+        {
+            alManager.OpenDevice(SelectedAudioOutputDevice);
+            int buffSize = Models.OpenALManager.ComputeBufferSize(Models.AudioTranscoder.SAMPLE_RATE, AUDIO_CHUNK_TIME_MS);
+            // Double size buffer for safety
+            alManager.OpenCaptureDevice(SelectedAudioInputDevice, Models.AudioTranscoder.SAMPLE_RATE, buffSize * 2);
+
+            //Start capture loop
+            //var audioCaptureLoop = new Timer(CaptureAudioCallback, null, AUDIO_CHUNK_TIME_MS, AUDIO_CHUNK_TIME_MS/2);
+            var audioCaptureLoop = Task.Run(()=>CaptureAudioCallback(null));
+            //CaptureAudioCallback(null);
+        }
+
+        // Called every 10ms (AUDIO_CHUNK_TIME_MS/2), should capture audio samples from openAL do any processing
+        // and then encode and send them to the output stream
+        //TODO: Rewrite this with unsafe code to avoid the numerous array copies.
+        private void CaptureAudioCallback(object state)
+        {
+            while (true)
+            {
+                var samples = alManager.CaptureSamples();
+
+                if (samples.Length == 0)
+                    continue;
+
+                foreach (byte b in samples)
+                    capturedAudio.PushBack(b);
+
+                if (capturedAudio.Size >= AUDIO_CAPTURE_BUFFER_SIZE)
+                {
+                    var encData = audioTranscoder.EncodeSamples(capturedAudio.ToArray(AUDIO_CAPTURE_BUFFER_SIZE, true));
+                    networkMarshal.SendAudioData(encData.ToArray());
+                }
+
+                Thread.Sleep(10);
+            }
         }
     }
 }

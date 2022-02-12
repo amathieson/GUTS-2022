@@ -27,7 +27,7 @@ namespace FragLabs.Audio.Codecs
             if (outputStreams < 1 || outputStreams > 255)
                 throw new ArgumentOutOfRangeException("inputChannels");
 
-            var mapping = Enumerable.Range(0, outputStreams).Cast<byte>().ToArray();
+            var mapping = Enumerable.Range(0, outputStreams).Select(x=>(byte)x).ToArray();
             IntPtr decoder = API.opus_multistream_decoder_create(outputSampleRate, outputStreams, outputStreams, 0, mapping, out IntPtr error);
             if ((Errors)error != Errors.OK)
             {
