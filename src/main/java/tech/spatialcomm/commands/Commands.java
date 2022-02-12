@@ -13,7 +13,9 @@ public enum Commands {
     CONNECT_OK(0x01),
     CONNECT_FAILED(0x02),
     PING(0x03),
-    PONG(0x04);
+    PONG(0x04),
+    NEW_USER(0x05),
+    BYE_USER(0x06);
 
     public final short id;
 
@@ -30,6 +32,8 @@ public enum Commands {
         REGISTRY.put(CONNECT_FAILED, CmdConnectFailed.class);
         REGISTRY.put(PING, CmdPing.class);
         REGISTRY.put(PONG, CmdPong.class);
+        REGISTRY.put(NEW_USER, CmdNewUser.class);
+        REGISTRY.put(BYE_USER, CmdByeUser.class);
     }
 
     public static Command readCommand(InputStream is) throws IOException {

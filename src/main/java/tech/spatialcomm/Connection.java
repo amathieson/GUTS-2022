@@ -25,8 +25,6 @@ public class Connection {
         this.socket = socket;
         this.lastPing = lastPing;
         this.userID = state.assignUserId();
-        state.connections.put(this.userID, this);
-        System.out.println("ID: " + userID);
     }
 
     public String toString() {
@@ -62,6 +60,11 @@ public class Connection {
                 this.username = cmd.username;
                 this.handshaked = true;
                 sendCommand(new CmdConnectOk(this.userID));
+                for (var conn : this.serverState.connections.values()) {
+                    if (conn != this && conn != null) {
+                        sendCommand(new CmdNewUser(this.userID, this.username));
+                    }
+                }
             } else {
                 sendCommand(new CmdConnectFailed("CONNECT expected"));
             }

@@ -1,8 +1,11 @@
 package tech.spatialcomm;
 
+import tech.spatialcomm.commands.CmdByeUser;
+import tech.spatialcomm.commands.CmdNewUser;
 import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
@@ -71,6 +74,9 @@ public class Server {
 
     public void handleClient(Connection connection) {
         try {
+            this.serverState.connections.put(connection.userID, connection);
+            System.out.println("ID: " + connection.userID);
+
             SERVICE.submit(connection::recvLoop);
             while (connection.isAlive()) {
                 Thread.sleep(1000L);
@@ -86,6 +92,13 @@ public class Server {
             ex.printStackTrace();
         } finally {
             this.serverState.connections.remove(connection.userID);
+            for (var conn : this.serverState.connections.values()) {
+                try {
+                    conn.sendCommand(new CmdByeUser(conn.userID));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
