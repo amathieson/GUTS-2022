@@ -16,6 +16,8 @@ namespace FragLabs.Audio.Codecs.Opus
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern int opus_encode(IntPtr st, byte[] pcm, int frame_size, IntPtr data, int max_data_bytes);
+        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int opus_encode_float(IntPtr st, float[] pcm, int frame_size, IntPtr data, int max_data_bytes);
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr opus_decoder_create(int Fs, int channels, out IntPtr error);
@@ -31,6 +33,15 @@ namespace FragLabs.Audio.Codecs.Opus
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern int opus_encoder_ctl(IntPtr st, Ctl request, out int value);
+
+        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr opus_multistream_decoder_create(int Fs, int channels, int streams, int coupled_streams, byte[] mapping, out IntPtr error);
+        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int opus_multistream_decode(IntPtr st, byte[] data, int len, IntPtr pcm, int frame_size, int decode_fec);
+        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void opus_multistream_decoder_destroy(IntPtr st);
+        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int opus_multistream_decode_float(IntPtr st, byte[] data, int len, IntPtr pcm, int frame_size, int decode_fec);
     }
 
     public enum Ctl : int

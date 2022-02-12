@@ -76,6 +76,34 @@ namespace FragLabs.Audio.Codecs
         }
 
         /// <summary>
+        /// Produces Opus encoded audio from PCM samples.
+        /// </summary>
+        /// <param name="inputPcmSamples">PCM samples to encode.</param>
+        /// <param name="sampleLength">How many bytes to encode.</param>
+        /// <param name="encodedLength">Set to length of encoded audio.</param>
+        /// <returns>Opus encoded audio buffer.</returns>
+        public unsafe byte[] EncodeFloat(float[] inputPcmSamples, int sampleLength, out int encodedLength)
+        {
+            if (disposed)
+                throw new ObjectDisposedException("OpusEncoder");
+
+            int frames = FrameCount(inputPcmSamples);
+            IntPtr encodedPtr;
+            byte[] encoded = new byte[MaxDataBytes];
+            int length = 0;
+            fixed (byte* benc = encoded)
+            {
+                encodedPtr = new IntPtr((void*)benc);
+                length = API.opus_encode_float(_encoder, inputPcmSamples, frames, encodedPtr, sampleLength);
+            }
+            encodedLength = length;
+            if (length < 0)
+                throw new Exception("Encoding failed - " + ((Errors)length).ToString());
+
+            return encoded;
+        }
+
+        /// <summary>
         /// Determines the number of frames in the PCM samples.
         /// </summary>
         /// <param name="pcmSamples"></param>
@@ -86,6 +114,16 @@ namespace FragLabs.Audio.Codecs
             int bitrate = 16;
             int bytesPerSample = (bitrate / 8) * InputChannels;
             return pcmSamples.Length / bytesPerSample;
+        }
+
+        /// <summary>
+        /// Determines the number of frames in the PCM samples.
+        /// </summary>
+        /// <param name="pcmSamples"></param>
+        /// <returns></returns>
+        public int FrameCount(float[] pcmSamples)
+        {
+            return pcmSamples.Length;
         }
 
         /// <summary>

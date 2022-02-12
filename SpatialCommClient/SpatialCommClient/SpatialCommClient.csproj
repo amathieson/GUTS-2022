@@ -19,7 +19,6 @@
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
-    <Folder Include="OpusWrapper\" />
     <None Remove=".gitignore" />
   </ItemGroup>
   <ItemGroup>
