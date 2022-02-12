@@ -2,6 +2,7 @@ package tech.spatialcomm.commands;
 
 import tech.spatialcomm.io.IOHelpers;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,8 +45,12 @@ public enum Commands {
     }
 
     public static void writeCommand(Command cmd, OutputStream os) throws IOException {
-        IOHelpers.writeCommandType(os, cmd.cmdType());
-        cmd.writeTo(os);
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            IOHelpers.writeCommandType(baos, cmd.cmdType());
+            cmd.writeTo(baos);
+            os.write(baos.toByteArray());
+            os.flush();
+        }
     }
 
 }
