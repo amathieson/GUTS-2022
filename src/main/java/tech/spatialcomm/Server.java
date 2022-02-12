@@ -1,25 +1,32 @@
 package tech.spatialcomm;
 
-import tech.spatialcomm.commands.CmdConnectOk;
 import tech.spatialcomm.commands.CmdPing;
 import tech.spatialcomm.server.ServerState;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Main {
+public class Server {
 
     private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
 
-    public static void main(String[] main) throws Exception {
-        ServerState serverState = new ServerState(new DatagramSocket(25567));
+    private final ServerState serverState;
+    private final int portNumber;
+
+    public Server(int portNumber) throws SocketException {
+        this.serverState = new ServerState(new DatagramSocket(portNumber));
+        this.portNumber = portNumber;
+    }
+
+    public void start() throws Exception {
         // TCP LOGIC
         SERVICE.submit(() -> {
-            try (ServerSocket socket = new ServerSocket(25567)) {
+            try (ServerSocket socket = new ServerSocket(this.portNumber)) {
                 System.out.println("TCP Listening on: " + socket.getLocalSocketAddress());
                 while (true) {
                     Connection conn = new Connection(serverState, socket.accept(), System.currentTimeMillis());
@@ -62,7 +69,7 @@ public class Main {
         });
     }
 
-    public static void handleClient(Connection connection) {
+    public void handleClient(Connection connection) {
         try {
             SERVICE.submit(connection::recvLoop);
             while (connection.isAlive()) {
@@ -77,7 +84,13 @@ public class Main {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+        } finally {
+            this.serverState.connections.remove(connection.userID);
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        new Server(25567).start();
     }
 
 }
