@@ -46,7 +46,7 @@ public class Main {
                         var buf = ByteBuffer.wrap(body, 0, 4);
                         var id = buf.getInt();
                         var connection = serverState.connections.get(id);
-                        if (connection != null) {
+                        if (connection != null && connection.handshaked) {
                             connection.socketAddress = packet.getSocketAddress();
                             connection.onUDPPacketRecv(body);
                         } else {
@@ -65,11 +65,10 @@ public class Main {
     public static void handleClient(Connection connection) {
         try {
             SERVICE.submit(connection::recvLoop);
-            connection.sendCommand(new CmdConnectOk(connection.userID));
             while (connection.isAlive()) {
-                Thread.sleep(5000L);
-                // timeout after 7 second of non activity
-                if (System.currentTimeMillis() - connection.lastPing > 7000L) {
+                Thread.sleep(1000L);
+                // timeout after 15 second of non activity
+                if (System.currentTimeMillis() - connection.lastPing > 5000L) {
                     connection.socket.close();
                     break;
                 } else {

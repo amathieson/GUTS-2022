@@ -18,6 +18,7 @@ public class Connection {
     public long lastPing;
     public String username;
     public SocketAddress socketAddress = null;
+    public boolean handshaked = false;
 
     public Connection(ServerState state, Socket socket, long lastPing) {
         this.serverState = state;
@@ -56,14 +57,16 @@ public class Connection {
     }
 
     public void onPacketRecv(Command command) throws IOException {
-        if (userID == 0) {
+        if (!handshaked) {
             if (command instanceof CmdConnect cmd) {
                 this.username = cmd.username;
+                this.handshaked = true;
                 sendCommand(new CmdConnectOk(this.userID));
             } else {
                 sendCommand(new CmdConnectFailed("CONNECT expected"));
             }
         } else if (command instanceof CmdPong) {
+            System.out.println("User " + this.userID + ": Pong");
             this.lastPing = System.currentTimeMillis();
         }
     }
