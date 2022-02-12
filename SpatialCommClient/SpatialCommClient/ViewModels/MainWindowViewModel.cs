@@ -24,16 +24,20 @@ namespace SpatialCommClient.ViewModels
         [Reactive] public string PortControlText { get; set; } = "25567";
         [Reactive] public string PortAudioText { get; set; } = "25567";
         [Reactive] public string UsernameText { get; set; } = "anonymous";
+        [Reactive] public string HeadPosition { get; set; } = "-000.00, -000.00, -000.00";
+        [Reactive] public string HeadRotation { get; set; } = "-000.00, -000.00, -000.00";
         [Reactive] public string ConnectionButtonText { get; private set; } = "Connect";
         [Reactive] public bool ConnectionButtonEnabled { get; private set; } = true;
+        [Reactive] public int SelectedCamera { get; set; } = 0;
         public ObservableCollection<string> LoggerText { get; } = new();
+        public ObservableCollection<string> Cameras { get; } = new();
         public ICommand ConnectCommand { get; private set; }
         #endregion
 
         public MainWindowViewModel()
         {
             CreateCommands();
-
+            
             networkMarshal = new Models.NetworkMarshal(LoggerText);
 
             LoggerText.Add("Initilised!");
@@ -72,6 +76,7 @@ namespace SpatialCommClient.ViewModels
                 AudioTXThread = Task.Run(() => { networkMarshal.SocketEmitter(false); });
                 ControlRXThread = Task.Run(() => { networkMarshal.ControlListener(); });
                 ControlTXThread = Task.Run(() => { networkMarshal.SocketEmitter(true); });
+                Task.Run(() => { new Models.WebcamEstimator(this); });
 
             });
             
