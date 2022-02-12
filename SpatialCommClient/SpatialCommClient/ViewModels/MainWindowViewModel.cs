@@ -13,6 +13,12 @@ namespace SpatialCommClient.ViewModels
     {
         private Models.NetworkMarshal networkMarshal;
 
+        private Task AudioRXThread;
+        private Task AudioTXThread;
+
+        private Task ControlRXThread;
+        private Task ControlTXThread;
+
         #region Bindable Objects
         [Reactive] public string IPAddressText { get; set; } = "spatialcomm.tech";
         [Reactive] public string PortControlText { get; set; } = "25567";
@@ -55,7 +61,14 @@ namespace SpatialCommClient.ViewModels
                 LoggerText.Add("Connected! Result: " + t.Result);
                 ConnectionButtonEnabled = true;
                 ConnectionButtonText = "Connected";
+
+                AudioRXThread = Task.Run(() => { networkMarshal.AudioListener(); });
+                AudioTXThread = Task.Run(() => { networkMarshal.SocketEmitter(false); });
+                ControlRXThread = Task.Run(() => { networkMarshal.ControlListener(); });
+                ControlTXThread = Task.Run(() => { networkMarshal.SocketEmitter(true); });
+
             });
+            
         }
     }
 }
