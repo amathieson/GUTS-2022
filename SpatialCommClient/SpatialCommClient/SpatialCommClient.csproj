@@ -45,7 +45,7 @@
     <None Update="OpenAL32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="OpenAL32.so">
+    <None Update="OpenAL32.so"></None>
       
     <None Update="Assets\shape_predictor_68_face_landmarks.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
