@@ -29,6 +29,7 @@ namespace SpatialCommClient.Models
             new ManualResetEvent(false);
 
         private static ObservableCollection<string> logger;
+        private static ObservableCollection<User> users;
 
         public event EventHandler_AudioData AudioDataRecived;
 
@@ -37,12 +38,14 @@ namespace SpatialCommClient.Models
         private ConcurrentQueue<byte[]> AudioMessageQueue = new ConcurrentQueue<byte[]>();
 
 
-        public NetworkMarshal(ObservableCollection<string> myLogger)
+        public NetworkMarshal(ObservableCollection<string> myLogger, ObservableCollection<User> Users)
         {
             socketAudio = new Socket(SocketType.Dgram, ProtocolType.Udp);
             socketControl = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
             logger = myLogger;
+
+            users = Users;
         }
 
         public void Dispose()
@@ -191,6 +194,7 @@ namespace SpatialCommClient.Models
             int len = socketControl.Receive(buffer, SocketFlags.None);
             if (len > 0)
             {
+                List<User> connected = new List<User>();
                 int baseAddr = 0;
                 int userID = -1;
                 while (userID!=0) {
@@ -199,9 +203,29 @@ namespace SpatialCommClient.Models
                         break;
                     int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
                     string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 8, strlength).ToArray());
-                    logger.Add(userID + " - " + username);
+                    connected.Add(new User(userID, username));
 
                     baseAddr += strlength + 8;
+                }
+
+                List<User> toRemove = new List<User>();
+
+                foreach (User u in users)
+                {
+                    if (!connected.Contains(u))
+                        toRemove.Add(u);
+                }
+
+                foreach (User u in toRemove)
+                {
+                    users.Remove(u);
+                }
+
+
+                foreach (User u in connected)
+                {
+                    if (!users.Contains(u))
+                        users.Add(u);
                 }
             }
         }
