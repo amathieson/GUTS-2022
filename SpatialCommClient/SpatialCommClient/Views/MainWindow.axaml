@@ -53,7 +53,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label Content="Output Device" Margin="10,2" VerticalContentAlignment="Center"/>
-                <ComboBox Items="{Binding AudioOutputDevices}" SelectedItem="{Binding SelectedAudioInputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
+                <ComboBox Items="{Binding AudioOutputDevices}" SelectedItem="{Binding SelectedAudioOutputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
             </StackPanel>
             
             <Button Content="{Binding ConnectionButtonText}" Command="{Binding ConnectCommand}" IsEnabled="{Binding ConnectionButtonEnabled}" Margin="10,2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>

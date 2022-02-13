@@ -9,6 +9,7 @@ using ReactiveUI.Fody.Helpers;
 using OpenTK.Audio.OpenAL;
 using System.Threading;
 using CircularBuffer;
+using System.Linq;
 
 namespace SpatialCommClient.ViewModels
 {
@@ -104,7 +105,6 @@ namespace SpatialCommClient.ViewModels
                 controlRXThread = Task.Run(() => { networkMarshal.ControlListener(); });
                 controlTXThread = Task.Run(() => { networkMarshal.SocketEmitter(true); });
                 Task.Run(() => { new Models.WebcamEstimator(this); });
-
             });
         }
 
@@ -118,7 +118,41 @@ namespace SpatialCommClient.ViewModels
             //Start capture loop
             //var audioCaptureLoop = new Timer(CaptureAudioCallback, null, AUDIO_CHUNK_TIME_MS, AUDIO_CHUNK_TIME_MS/2);
             var audioCaptureLoop = Task.Run(()=>CaptureAudioCallback(null));
-            //CaptureAudioCallback(null);
+
+            networkMarshal.AudioDataReceived += NetworkMarshal_AudioDataReceived;
+        }
+
+        private void NetworkMarshal_AudioDataReceived(byte[] audioData, int userID, long packetID)
+        {
+            var decodedSamples = audioTranscoder.DecodeSamples(audioData);
+
+            //TODO: Manage new users somewhere else (use the user discovery packet handler)
+            if(!alManager.HasSource(userID))
+            {
+                //Create a new source
+                alManager.AddSource(userID);
+
+                //Rejiggle all the sources
+                ReJiggleSources();
+            }
+
+            alManager.PlayBuffer(decodedSamples, userID);
+        }
+
+        private void ReJiggleSources()
+        {
+            //Reposition all the sources around the listner
+            int nsources = alManager.Users2Source.Count;
+            var sources = alManager.Users2Source.Keys.AsEnumerable().OrderBy(x => x).ToList();
+
+            for(int i = 0; i < nsources; i++)
+            {
+                float arcPos = (i + 1) / ((float)nsources + 1)*2*MathF.PI-MathF.PI;
+                float x = MathF.Cos(arcPos);
+                float z = MathF.Sin(arcPos);
+
+                alManager.PlaceSource(x, 0, z, sources[i]);
+            }
         }
 
         // Called every 10ms (AUDIO_CHUNK_TIME_MS/2), should capture audio samples from openAL do any processing

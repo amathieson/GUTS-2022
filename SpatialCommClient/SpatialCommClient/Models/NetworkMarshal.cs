@@ -14,7 +14,7 @@ namespace SpatialCommClient.Models
 {
     public class NetworkMarshal : IDisposable
     {
-        public delegate void EventHandler_AudioData(byte[] AudioData);
+        public delegate void EventHandler_AudioData(byte[] AudioData, int userID, long packetID);
 
         private Socket socketAudio;
         private Socket socketControl;
@@ -30,12 +30,12 @@ namespace SpatialCommClient.Models
 
         private static ObservableCollection<string> logger;
 
-        public event EventHandler_AudioData AudioDataRecived;
+        public event EventHandler_AudioData AudioDataReceived;
 
         //TODO: To avoid unnecessary memory copies we might want to use Span<byte> which allows data like this to be efficiently passed around.
         private ConcurrentQueue<byte[]> ControlMessageQueue = new ConcurrentQueue<byte[]>();
         private ConcurrentQueue<byte[]> AudioMessageQueue = new ConcurrentQueue<byte[]>();
-
+        private byte[] audioRxBuffer = new byte[4096 * 10];
 
         public NetworkMarshal(ObservableCollection<string> myLogger)
         {
@@ -99,9 +99,13 @@ namespace SpatialCommClient.Models
         {
             while (socketAudio.Connected)
             {
-                byte[] buffer = new byte[4096 * 100];
-                int recv = socketAudio.Receive(buffer);
-                AudioDataRecived?.Invoke(buffer.Take(recv).ToArray());
+                int recv = socketAudio.Receive(audioRxBuffer);
+                if (recv > 0)
+                {
+                    int userId = BinaryPrimitives.ReverseEndianness(BitConverter.ToInt32(audioRxBuffer));
+                    long packIndex = BinaryPrimitives.ReverseEndianness(BitConverter.ToInt64(audioRxBuffer, 4));
+                    AudioDataReceived?.Invoke(audioRxBuffer.Skip(12).Take(recv).ToArray(), userId, packetID);
+                }
             }
         }
 
