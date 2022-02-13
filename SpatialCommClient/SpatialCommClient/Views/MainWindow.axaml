@@ -30,6 +30,7 @@
       <Label Content="🎧 SpatialComm V0.1" FontFamily="OCR A" FontSize="24" Margin="10,5,10,10" Grid.Row="0"/>
       <Grid ColumnDefinitions="*,*" Grid.Row="1">
         <StackPanel>
+
           <StackPanel Orientation="Horizontal">
             <Label Content="Server IP" Margin="10,2" VerticalContentAlignment="Center"/>
             <TextBox Text="{Binding IPAddressText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
