@@ -199,19 +199,19 @@ namespace SpatialCommClient.Models
             if (len > 0)
             {
                 List<User> connected = new List<User>();
-                int baseAddr = 0;
+                int baseAddr = 4;
                 int userID = -1;
-                int counter = 0;
-                int userCount = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
+                int counter = 1;
+                int userCount = BitConverter.ToInt32(buffer.Slice(0, 4).ReverseSpan().ToArray());
                 while (counter < userCount) {
-                    userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
+                    userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
                     if (userID == 0)
                         break;
-                    int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 8, 4).ReverseSpan().ToArray());
-                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 12, Math.Min(strlength, buffer.Length- (baseAddr + 12))).ToArray());
+                    int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
+                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 8, Math.Min(strlength, buffer.Length- (baseAddr + 12))).ToArray());
                     connected.Add(new User(userID, username));
 
-                    baseAddr += strlength + 12;
+                    baseAddr += strlength + 8;
                     counter++;
                 }
 
