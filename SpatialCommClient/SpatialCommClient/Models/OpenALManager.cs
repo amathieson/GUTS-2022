@@ -95,7 +95,16 @@ namespace SpatialCommClient.Models
             AL.Listener(ALListener3f.Position, 0, 0, 0);
             AL.Listener(ALListener3f.Velocity, 0, 0, 0);
             AL.Listener(ALListenerfv.Orientation, ref vecAt, ref vecUp);
-            //TODO: Create output buffers and bind them
+        }
+
+        /// <summary>
+        /// Updates the rotation of the listener in 3D space
+        /// </summary>
+        /// <param name="fwd">Forward vector of the listener</param>
+        /// <param name="up">Up vector of the listener</param>
+        public void UpdateListener(Vector3 fwd, Vector3 up)
+        {
+            AL.Listener(ALListenerfv.Orientation, ref fwd, ref up);
         }
 
         /// <summary>
@@ -114,10 +123,13 @@ namespace SpatialCommClient.Models
             AL.Source(source, ALSource3f.Velocity, 0, 0, 0);
             AL.Source(source, ALSourceb.Looping, false);
 
-            int buffer = AL.GenBuffer();
-            AL.BindBufferToSource(source, buffer);
+            int bufferA = AL.GenBuffer();
+            int bufferB = AL.GenBuffer();
+            int bufferC = AL.GenBuffer();
+            //AL.BindBufferToSource(source, buffer);
+            //AL.SourceQueueBuffer(source, bufferB);
 
-            users2Sources.Add(userID, (source, buffer));
+            users2Sources.Add(userID, (source, bufferA, bufferB, bufferC));
         }
 
         /// <summary>
@@ -158,18 +170,42 @@ namespace SpatialCommClient.Models
             ALC.GetInteger(captureDevice, AlcGetInteger.CaptureSamples, 1, out int capturedSamples);
             ALC.CaptureSamples(captureDevice, buffer, capturedSamples);
 
-            return buffer.Take(capturedSamples).ToArray();
+            return buffer.Take(capturedSamples*2).ToArray();
         }
 
         public void PlayBuffer(byte[] buff, int userID)
         {
-            (int source, int buffer, int bufferB, bool bbuff) = users2Sources[userID];
-            AL.BufferData(buffer, ALFormat.Mono16, buff, AudioTranscoder.SAMPLE_RATE);
-            //AL.BindBufferToSource(source, buffer);
-            AL.SourcePlay(source);
+            (int source, int bufferA, int bufferB, int bufferC) = users2Sources[userID];
 
-            //Swap buffer
-            users2Sources[userID] = (source, buffer, bufferB, !bbuff);
+            //Once OpenAL plays a buffer it adds it to a list of processed buffers.
+            //We dequeue any processed buffers to refill them with data and then requeue.
+            AL.GetSource(source, ALGetSourcei.BuffersProcessed, out int buffersProcessed);
+            while (buffersProcessed > 0)
+            {
+                int oldbuff = AL.SourceUnqueueBuffers(source, 1)[0];
+
+                AL.BufferData(oldbuff, ALFormat.Mono16, buff, AudioTranscoder.SAMPLE_RATE);
+                AL.SourceQueueBuffer(source, oldbuff);
+
+                buffersProcessed--;
+            }
+
+            ALSourceState state = AL.GetSourceState(source);
+            if (state == ALSourceState.Initial)
+            {
+                //This mostly handles the initial state before any buffers have been filled
+                AL.BufferData(bufferA, ALFormat.Mono16, buff, AudioTranscoder.SAMPLE_RATE);
+                AL.BufferData(bufferB, ALFormat.Mono16, buff, AudioTranscoder.SAMPLE_RATE);
+                AL.BufferData(bufferC, ALFormat.Mono16, buff, AudioTranscoder.SAMPLE_RATE);
+                AL.SourceQueueBuffers(source, 3, new int[] { bufferA, bufferB, bufferC });
+            }
+
+            //In case we reach the end of a buffer
+            if(state != ALSourceState.Playing)
+            {
+                AL.SourcePlay(source);
+                System.Diagnostics.Debug.WriteLine("Warning: Audio playback engine can't keep up!");
+            }
         }
     }
 
@@ -178,14 +214,14 @@ namespace SpatialCommClient.Models
         public int source;
         public int buffer;
         public int bufferB;
-        public bool bbuff;
+        public int bufferC;
 
-        public AudioSourceState(int source, int buffer, int bufferB, bool bbuff)
+        public AudioSourceState(int source, int buffer, int bufferB, int bufferC)
         {
             this.source = source;
             this.buffer = buffer;
             this.bufferB = bufferB;
-            this.bbuff = bbuff;
+            this.bufferC = bufferC;
         }
 
         public override bool Equals(object? obj)
@@ -194,30 +230,30 @@ namespace SpatialCommClient.Models
                    source == other.source &&
                    buffer == other.buffer &&
                    bufferB == other.bufferB &&
-                   bbuff == other.bbuff;
+                   bufferC == other.bufferC;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(source, buffer, bufferB, bbuff);
+            return HashCode.Combine(source, buffer, bufferB, bufferC);
         }
 
-        public void Deconstruct(out int source, out int buffer, out int bufferB, out bool bbuff)
+        public void Deconstruct(out int source, out int buffer, out int bufferB, out int bufferC)
         {
             source = this.source;
             buffer = this.buffer;
             bufferB = this.bufferB;
-            bbuff = this.bbuff;
+            bufferC = this.bufferC;
         }
 
-        public static implicit operator (int source, int buffer, int bufferB, bool bbuff)(AudioSourceState value)
+        public static implicit operator (int source, int buffer, int bufferB, int bufferC)(AudioSourceState value)
         {
-            return (value.source, value.buffer, value.bufferB, value.bbuff);
+            return (value.source, value.buffer, value.bufferB, value.bufferC);
         }
 
-        public static implicit operator AudioSourceState((int source, int buffer, int bufferB, bool bbuff) value)
+        public static implicit operator AudioSourceState((int source, int buffer, int bufferB, int bufferC) value)
         {
-            return new AudioSourceState(value.source, value.buffer, value.bufferB, value.bbuff);
+            return new AudioSourceState(value.source, value.buffer, value.bufferB, value.bufferC);
         }
     }
 }

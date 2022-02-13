@@ -16,23 +16,40 @@ namespace SpatialCommClient.Models
 {
     class WebcamEstimator
     {
-        MCvPoint3D32f PNT_NOSE = new MCvPoint3D32f(0, 0, 0);
-        MCvPoint3D32f PNT_NOSE_DIR = new MCvPoint3D32f(0, 0, 1000);
-        MCvPoint3D32f PNT_CHIN = new MCvPoint3D32f(0, -330, -65);
-        MCvPoint3D32f PNT_LEYE = new MCvPoint3D32f(-225, 170, -135);
-        MCvPoint3D32f PNT_REYE = new MCvPoint3D32f(225, 170, -135);
-        MCvPoint3D32f PNT_LMOUTH = new MCvPoint3D32f(-150, 150, -125);
-        MCvPoint3D32f PNT_RMOUTH = new MCvPoint3D32f(-150, 150, -125);
+        public delegate void FaceUpdateDelegate(Emgu.CV.Matrix<float> rotation);
+
+        MCvPoint3D32f PNT_NOSE = new MCvPoint3D32f(0, 0, 100);
+        MCvPoint3D32f PNT_NOSE_DIR = new MCvPoint3D32f(0, 0, 500);
+        MCvPoint3D32f PNT_CHIN = new MCvPoint3D32f(0, -330, -65f);
+        MCvPoint3D32f PNT_LEYE = new MCvPoint3D32f(-225, 170, -135f);
+        MCvPoint3D32f PNT_REYE = new MCvPoint3D32f(225, 170, -135f);
+        MCvPoint3D32f PNT_LMOUTH = new MCvPoint3D32f(-150, 150, -125f);
+        MCvPoint3D32f PNT_RMOUTH = new MCvPoint3D32f(-150, 150, -125f);
+
+        private MainWindowViewModel mwvm;
+
         public double FPS { get; set; } = 0;
+        public Emgu.CV.Matrix<float> FaceRotation { get; private set; }
+        public event FaceUpdateDelegate FaceUpdateEvent;
 
         public WebcamEstimator(MainWindowViewModel mwvm)
         {
+            this.mwvm = mwvm;
+        }
 
+        /// <summary>
+        /// Runs the WebcamEstimator in a blocking loop forever.
+        /// </summary>
+        public void RunEstimator()
+        {
             using (var win = new ImageWindow())
             using (var detector = Dlib.GetFrontalFaceDetector())
             using (var sp = ShapePredictor.Deserialize("Assets/shape_predictor_68_face_landmarks.dat"))
             {
                 VideoCapture capture = new VideoCapture(mwvm.SelectedCamera);
+                if (!capture.IsOpened)
+                    return;
+
                 DateTime lastFrame = DateTime.Now;
                 while (true)
                 {
@@ -91,12 +108,12 @@ namespace SpatialCommClient.Models
 
                             PointF[] IMAGE_PNTS =
                             {
-                        ToPointF(shapes[0].GetPart(33)),
+                        ToPointF(shapes[0].GetPart(30)),//33
                         ToPointF(shapes[0].GetPart(8)),
                         ToPointF(shapes[0].GetPart(36)),
                         ToPointF(shapes[0].GetPart(45)),
-                        ToPointF(shapes[0].GetPart(59)),
-                        ToPointF(shapes[0].GetPart(55)),
+                        ToPointF(shapes[0].GetPart(48)),//59
+                        ToPointF(shapes[0].GetPart(54)),//55
                     };
 
                             Emgu.CV.Matrix<float> matrix = new Emgu.CV.Matrix<float>(3, 3)
@@ -118,7 +135,13 @@ namespace SpatialCommClient.Models
                             _ = CvInvoke.SolvePnP(FACE_PNTS, IMAGE_PNTS, matrix, distort, rotationMatrix, translationVector);
 
                             mwvm.HeadPosition = MatrixToString(translationVector);
-                            mwvm.HeadRotation = MatrixToString(rotationMatrix);
+                            //mwvm.HeadRotation = MatrixToString(rotationMatrix);
+
+                            Emgu.CV.Matrix<float> rotationMatrix3x3 = new Emgu.CV.Matrix<float>(3, 3);
+                            CvInvoke.Rodrigues(rotationMatrix, rotationMatrix3x3);
+
+                            FaceRotation = rotationMatrix3x3;
+                            FaceUpdateEvent.Invoke(rotationMatrix3x3);
 
                             FPS = (1000 / ((DateTime.Now - lastFrame).TotalMilliseconds));
 
@@ -148,7 +171,7 @@ namespace SpatialCommClient.Models
                 rtn += "{";
                 for (int x = 0; x < matrix.Cols; x++)
                 {
-                    rtn += matrix[y, x].ToString() + ", ";
+                    rtn += $"{matrix[y, x]:F3}, ";
                 }
                 rtn += "}";
             }
