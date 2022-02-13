@@ -204,7 +204,7 @@ namespace SpatialCommClient.Models
                     if (userID == 0)
                         break;
                     int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 8, 4).ReverseSpan().ToArray());
-                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 12, strlength).ToArray());
+                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 12, Math.Min(strlength, buffer.Length- (baseAddr + 12))).ToArray());
                     connected.Add(new User(userID, username));
 
                     baseAddr += strlength + 12;
