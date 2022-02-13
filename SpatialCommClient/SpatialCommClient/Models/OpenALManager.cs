@@ -89,8 +89,8 @@ namespace SpatialCommClient.Models
             alContext = ALC.CreateContext(outputDevice, attribs);
             ALC.MakeContextCurrent(alContext);
 
-            var vecAt = OpenTK.Mathematics.Vector3.UnitZ;
-            var vecUp = OpenTK.Mathematics.Vector3.UnitY;
+            var vecAt = Vector3.UnitZ;
+            var vecUp = Vector3.UnitY;
 
             AL.Listener(ALListener3f.Position, 0, 0, 0);
             AL.Listener(ALListener3f.Velocity, 0, 0, 0);
@@ -118,7 +118,7 @@ namespace SpatialCommClient.Models
             int source = AL.GenSource();
 
             AL.Source(source, ALSourcef.Pitch, 1);
-            AL.Source(source, ALSourcef.Gain, 1);
+            AL.Source(source, ALSourcef.Gain, 2);
             AL.Source(source, ALSource3f.Position, pos.X, pos.Y, pos.Z);
             AL.Source(source, ALSource3f.Velocity, 0, 0, 0);
             AL.Source(source, ALSourceb.Looping, false);

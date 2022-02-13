@@ -41,7 +41,7 @@ namespace SpatialCommClient.Models
 
         public static string ToStringFormatted(this OpenTK.Mathematics.Vector3 vec)
         {
-            return $"[{vec.X:3F},  {vec.Y:3F},  {vec.Z:3F}]";
+            return $"[{vec.X:F3},  {vec.Y:F3},  {vec.Z:F3}]";
         }
     }
 }
