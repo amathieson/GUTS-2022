@@ -32,5 +32,16 @@ namespace SpatialCommClient.Models
             span.Reverse();
             return span;
         }
+
+        public static double Frac(double x)
+        {
+            double whole = Math.Truncate(x);
+            return x - whole;
+        }
+
+        public static string ToStringFormatted(this OpenTK.Mathematics.Vector3 vec)
+        {
+            return $"[{vec.X:3F},  {vec.Y:3F},  {vec.Z:3F}]";
+        }
     }
 }

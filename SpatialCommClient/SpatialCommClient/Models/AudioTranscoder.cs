@@ -34,9 +34,9 @@ namespace SpatialCommClient.Models
             encoder = OpusEncoder.Create(SAMPLE_RATE, 1, FragLabs.Audio.Codecs.Opus.Application.Voip);
         }
 
-        public float[] DecodeSamples(byte[] data)
+        public byte[] DecodeSamples(byte[] data)
         {
-            return decoder.DecodeFloat(data, data.Length, out int decodedLength).Take(decodedLength).ToArray();
+            return decoder.Decode(data, data.Length, out int decodedLength).Take(decodedLength).ToArray();
         }
 
         public Span<byte> EncodeSamples(float[] data)
