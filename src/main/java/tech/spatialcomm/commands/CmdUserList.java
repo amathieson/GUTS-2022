@@ -31,7 +31,7 @@ public class CmdUserList extends Command {
 
     @Override
     protected void writeTo(OutputStream stream) throws IOException {
-//        IOHelpers.writeInt32(stream, this.serverState.userNames.size());
+        IOHelpers.writeInt32(stream, this.serverState.userNames.size());
         this.serverState.userNames.forEach(((id, name) -> {
             if (this.serverState.connections.get(id) != null) {
                 if (this.serverState.connections.get(id).isAlive()) {
