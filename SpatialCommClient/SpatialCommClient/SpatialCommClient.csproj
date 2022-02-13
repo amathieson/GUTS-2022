@@ -19,6 +19,8 @@
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Remove="Assets\english-adjectives.txt" />
+    <AvaloniaResource Remove="Assets\english-nouns.txt" />
     <AvaloniaResource Remove="Assets\shape_predictor_68_face_landmarks.dat" />
     <None Remove=".gitignore" />
   </ItemGroup>
@@ -41,6 +43,14 @@
     <PackageReference Include="ReactiveUI.Fody" Version="17.1.17" />
   </ItemGroup>
   <ItemGroup>
+    
+    <None Update="Assets\english-adjectives.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    
+    <None Update="Assets\english-nouns.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     
     <None Update="OpenAL32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

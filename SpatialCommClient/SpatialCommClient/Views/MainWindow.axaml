@@ -46,6 +46,7 @@
           <StackPanel Orientation="Horizontal">
             <Label Content="Username" Margin="10,2" VerticalContentAlignment="Center"/>
             <TextBox Text="{Binding UsernameText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+            <Button Command="{Binding GenerateUsername}">↻</Button>
           </StackPanel>
 
           <StackPanel Orientation="Horizontal">

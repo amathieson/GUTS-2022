@@ -11,6 +11,7 @@ using CircularBuffer;
 using System.Linq;
 using OpenTK.Mathematics;
 using SpatialCommClient.Models;
+using System.IO;
 
 namespace SpatialCommClient.ViewModels
 {
@@ -76,8 +77,11 @@ namespace SpatialCommClient.ViewModels
                 AudioInputDevices.Add(d);
             foreach (string d in alManager.ListOutputDevices())
                 AudioOutputDevices.Add(d);
+            GenerateUsername();
 
             LoggerText.Add("Initilised!");
+
+
         }
 
         //TODO: Find something to call this
@@ -230,6 +234,14 @@ namespace SpatialCommClient.ViewModels
 
                 Thread.Sleep(10);
             }
+        }
+
+        private void GenerateUsername()
+        {
+            string[] adj = File.ReadAllLines("Assets/english-adjectives.txt");
+            string[] noun = File.ReadAllLines("Assets/english-nouns.txt");
+            Random r = new Random();
+            UsernameText = adj[r.Next(0, adj.Length - 1)] + "-" + noun[r.Next(0, noun.Length - 1)] + r.Next(1, 999);
         }
     }
 }
