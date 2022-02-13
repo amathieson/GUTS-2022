@@ -33,29 +33,29 @@
 
           <StackPanel Orientation="Horizontal">
             <Label Content="Server IP" Margin="10,2" VerticalContentAlignment="Center"/>
-            <TextBox Text="{Binding IPAddressText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+            <TextBox IsEnabled="{Binding ConnectionButtonEnabled}" Text="{Binding IPAddressText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <Label Content="Port Control" Margin="10,2" VerticalContentAlignment="Center"/>
-            <TextBox Text="{Binding PortControlText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+            <TextBox IsEnabled="{Binding ConnectionButtonEnabled}" Text="{Binding PortControlText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <Label Content="Port Audio" Margin="10,2" VerticalContentAlignment="Center"/>
-            <TextBox Text="{Binding PortAudioText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+            <TextBox IsEnabled="{Binding ConnectionButtonEnabled}" Text="{Binding PortAudioText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <Label Content="Username" Margin="10,2" VerticalContentAlignment="Center"/>
-            <TextBox Text="{Binding UsernameText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
-            <Button Command="{Binding GenerateUsername}">↻</Button>
+            <TextBox IsEnabled="{Binding ConnectionButtonEnabled}" Text="{Binding UsernameText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+            <Button IsEnabled="{Binding ConnectionButtonEnabled}" Command="{Binding GenerateUsername}">↻</Button>
           </StackPanel>
 
           <StackPanel Orientation="Horizontal">
             <Label Content="Input Device" Margin="10,2" VerticalContentAlignment="Center"/>
-            <ComboBox Items="{Binding AudioInputDevices}" SelectedItem="{Binding SelectedAudioInputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+            <ComboBox IsEnabled="{Binding ConnectionButtonEnabled}" Items="{Binding AudioInputDevices}" SelectedItem="{Binding SelectedAudioInputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <Label Content="Output Device" Margin="10,2" VerticalContentAlignment="Center"/>
-            <ComboBox Items="{Binding AudioOutputDevices}" SelectedItem="{Binding SelectedAudioOutputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
+            <ComboBox IsEnabled="{Binding ConnectionButtonEnabled}" Items="{Binding AudioOutputDevices}" SelectedItem="{Binding SelectedAudioOutputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
           </StackPanel>
 
           <Button Content="{Binding ConnectionButtonText}" Command="{Binding ConnectCommand}" IsEnabled="{Binding ConnectionButtonEnabled}" Margin="10,2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>

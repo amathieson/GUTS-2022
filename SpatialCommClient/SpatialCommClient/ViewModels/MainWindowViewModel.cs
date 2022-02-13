@@ -108,7 +108,7 @@ namespace SpatialCommClient.ViewModels
             _ = t.ContinueWith(_ =>
             {
                 LoggerText.Add("Connected! Result: " + t.Result);
-                ConnectionButtonEnabled = true;
+                ConnectionButtonEnabled = false;
                 ConnectionButtonText = "Connected";
 
                 if (t.Result == -1)
@@ -238,10 +238,16 @@ namespace SpatialCommClient.ViewModels
 
         private void GenerateUsername()
         {
-            string[] adj = File.ReadAllLines("Assets/english-adjectives.txt");
-            string[] noun = File.ReadAllLines("Assets/english-nouns.txt");
-            Random r = new Random();
-            UsernameText = adj[r.Next(0, adj.Length - 1)] + "-" + noun[r.Next(0, noun.Length - 1)] + r.Next(1, 999);
+            try
+            {
+                string[] adj = File.ReadAllLines("Assets/english-adjectives.txt");
+                string[] noun = File.ReadAllLines("Assets/english-nouns.txt");
+                Random r = new Random();
+                UsernameText = adj[r.Next(0, adj.Length - 1)] + "-" + noun[r.Next(0, noun.Length - 1)] + r.Next(1, 999);
+            } catch (Exception)
+            {
+                UsernameText = "anonymous";
+            }
         }
     }
 }
