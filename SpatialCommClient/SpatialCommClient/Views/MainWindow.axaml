@@ -3,7 +3,7 @@
         xmlns:vm="using:SpatialCommClient.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="650"
         x:Class="SpatialCommClient.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="SpatialComm By Team Cheese"
@@ -61,7 +61,7 @@
         </StackPanel>
 
         <ScrollViewer Grid.Column="1">
-          <ItemsControl Items="{Binding LoggerText}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+          <ItemsControl Items="{Binding LoggerText}" Padding="10" Background="#50101010" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </ScrollViewer>
       </Grid>
 
@@ -69,10 +69,10 @@
         <StackPanel Grid.Column="0" Orientation="Vertical" Margin="10">
           <Label FontFamily="OCR A" FontSize="18" FontWeight="Bold" Margin="0">Online Users</Label>
           <ScrollViewer Margin="0">
-            <ItemsControl Items="{Binding Users}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></ItemsControl>
+            <ItemsControl Items="{Binding Users}" Padding="10" Background="#50101010" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></ItemsControl>
           </ScrollViewer>
         </StackPanel>
-        <StackPanel Grid.Column="1">
+        <StackPanel Grid.Column="1" Margin="10">
           <StackPanel Orientation="Horizontal">
             <Label Content="Head Rotation" Margin="10,2" VerticalContentAlignment="Center"/>
             <TextBox Text="{Binding HeadRotation}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top"></TextBox>
