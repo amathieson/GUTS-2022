@@ -29,6 +29,7 @@ namespace SpatialCommClient.Models
             new ManualResetEvent(false);
 
         private static ObservableCollection<string> logger;
+        private static ObservableCollection<User> users;
 
         public event EventHandler_AudioData AudioDataReceived;
 
@@ -37,12 +38,14 @@ namespace SpatialCommClient.Models
         private ConcurrentQueue<byte[]> AudioMessageQueue = new ConcurrentQueue<byte[]>();
         private byte[] audioRxBuffer = new byte[4096 * 10];
 
-        public NetworkMarshal(ObservableCollection<string> myLogger)
+        public NetworkMarshal(ObservableCollection<string> myLogger, ObservableCollection<User> Users)
         {
             socketAudio = new Socket(SocketType.Dgram, ProtocolType.Udp);
             socketControl = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
             logger = myLogger;
+
+            users = Users;
         }
 
         public void Dispose()
@@ -195,17 +198,41 @@ namespace SpatialCommClient.Models
             int len = socketControl.Receive(buffer, SocketFlags.None);
             if (len > 0)
             {
+                List<User> connected = new List<User>();
                 int baseAddr = 0;
                 int userID = -1;
-                while (userID!=0) {
-                    userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
+                int counter = 0;
+                int userCount = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
+                while (counter < userCount) {
+                    userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
                     if (userID == 0)
                         break;
-                    int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
-                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 8, strlength).ToArray());
-                    logger.Add(userID + " - " + username);
+                    int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 8, 4).ReverseSpan().ToArray());
+                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 12, strlength).ToArray());
+                    connected.Add(new User(userID, username));
 
-                    baseAddr += strlength + 8;
+                    baseAddr += strlength + 12;
+                    counter++;
+                }
+
+                List<User> toRemove = new List<User>();
+
+                foreach (User u in users)
+                {
+                    if (!connected.Contains(u))
+                        toRemove.Add(u);
+                }
+
+                foreach (User u in toRemove)
+                {
+                    users.Remove(u);
+                }
+
+
+                foreach (User u in connected)
+                {
+                    if (!users.Contains(u))
+                        users.Add(u);
                 }
             }
         }

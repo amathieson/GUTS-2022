@@ -27,47 +27,51 @@
     </ExperimentalAcrylicBorder>
 
     <Grid RowDefinitions="52,*,*">
-      <Label Content="SpatialComm V0.1" FontFamily="OCR A" FontSize="24" Margin="10,10,10,10" Grid.Row="0"/>
+      <Label Content="🎧 SpatialComm V0.1" FontFamily="OCR A" FontSize="24" Margin="10,5,10,10" Grid.Row="0"/>
       <Grid ColumnDefinitions="*,*" Grid.Row="1">
         <StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Server IP" Margin="10,2" VerticalContentAlignment="Center"/>
-                <TextBox Text="{Binding IPAddressText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Port Control" Margin="10,2" VerticalContentAlignment="Center"/>
-                <TextBox Text="{Binding PortControlText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Port Audio" Margin="10,2" VerticalContentAlignment="Center"/>
-                <TextBox Text="{Binding PortAudioText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Username" Margin="10,2" VerticalContentAlignment="Center"/>
-                <TextBox Text="{Binding UsernameText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
-            </StackPanel>
-          
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Input Device" Margin="10,2" VerticalContentAlignment="Center"/>
-                <ComboBox Items="{Binding AudioInputDevices}" SelectedItem="{Binding SelectedAudioInputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Output Device" Margin="10,2" VerticalContentAlignment="Center"/>
-                <ComboBox Items="{Binding AudioOutputDevices}" SelectedItem="{Binding SelectedAudioOutputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
-            </StackPanel>
-            
-            <Button Content="{Binding ConnectionButtonText}" Command="{Binding ConnectCommand}" IsEnabled="{Binding ConnectionButtonEnabled}" Margin="10,2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Server IP" Margin="10,2" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding IPAddressText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Port Control" Margin="10,2" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding PortControlText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Port Audio" Margin="10,2" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding PortAudioText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Username" Margin="10,2" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding UsernameText}" Margin="10,2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Input Device" Margin="10,2" VerticalContentAlignment="Center"/>
+            <ComboBox Items="{Binding AudioInputDevices}" SelectedItem="{Binding SelectedAudioInputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Column="2"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <Label Content="Output Device" Margin="10,2" VerticalContentAlignment="Center"/>
+            <ComboBox Items="{Binding AudioOutputDevices}" SelectedItem="{Binding SelectedAudioOutputDevice}" Margin="10,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
+          </StackPanel>
+
+          <Button Content="{Binding ConnectionButtonText}" Command="{Binding ConnectCommand}" IsEnabled="{Binding ConnectionButtonEnabled}" Margin="10,2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         </StackPanel>
-        
+
         <ScrollViewer Grid.Column="1">
           <ItemsControl Items="{Binding LoggerText}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </ScrollViewer>
       </Grid>
 
       <Grid Grid.Row="2" ColumnDefinitions="*,*">
-        <ScrollViewer Grid.Column="0">
-          <ItemsControl Items="{Binding Players}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></ItemsControl>
-        </ScrollViewer>
+        <StackPanel Grid.Column="0" Orientation="Vertical" Margin="10">
+          <Label FontFamily="OCR A" FontSize="18" FontWeight="Bold" Margin="0">Online Users</Label>
+          <ScrollViewer Margin="0">
+            <ItemsControl Items="{Binding Users}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
         <StackPanel Grid.Column="1">
           <StackPanel Orientation="Horizontal">
             <Label Content="Head Rotation" Margin="10,2" VerticalContentAlignment="Center"/>

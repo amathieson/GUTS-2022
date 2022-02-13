@@ -44,8 +44,8 @@ namespace SpatialCommClient.ViewModels
         [Reactive] public string PortControlText { get; set; } = "25567";
         [Reactive] public string PortAudioText { get; set; } = "25567";
         [Reactive] public string UsernameText { get; set; } = "anonymous";
-        [Reactive] public string HeadPosition { get; set; } = "-000.00, -000.00, -000.00";
-        [Reactive] public string HeadRotation { get; set; } = "-000.00, -000.00, -000.00";
+        [Reactive] public string HeadPosition { get; set; } = "~NOT CONNECTED~";
+        [Reactive] public string HeadRotation { get; set; } = "~NOT CONNECTED~";
         [Reactive] public string ConnectionButtonText { get; private set; } = "Connect";
         [Reactive] public bool ConnectionButtonEnabled { get; private set; } = true;
         public ObservableCollection<string> AudioInputDevices { get; } = new();
@@ -55,7 +55,7 @@ namespace SpatialCommClient.ViewModels
         [Reactive] public int SelectedCamera { get; set; } = 0;
         public ObservableCollection<string> LoggerText { get; } = new();
         public ObservableCollection<string> Cameras { get; } = new();
-        public ObservableCollection<string> Players { get; } = new();
+        public ObservableCollection<User> Users { get; } = new();
         public ICommand ConnectCommand { get; private set; }
         #endregion
 
@@ -63,12 +63,14 @@ namespace SpatialCommClient.ViewModels
         {
             CreateCommands();
             
-            networkMarshal = new NetworkMarshal(LoggerText);
+
+            networkMarshal = new NetworkMarshal(LoggerText, Users);
             alManager = new OpenALManager();
             audioTranscoder = new AudioTranscoder(1);
             webcamEstimator = new WebcamEstimator(this);
 
             webcamEstimator.FaceUpdateEvent += WebcamEstimator_FaceUpdateEvent;
+
 
             foreach (string d in alManager.ListInputDevices())
                 AudioInputDevices.Add(d);
@@ -99,12 +101,13 @@ namespace SpatialCommClient.ViewModels
             LoggerText.Add($"Connecting to {IPAddressText}:{PortControlText}...");
             var t = Task.Run(() =>
                 networkMarshal.ConnectToServer(IPAddressText, int.Parse(PortControlText), int.Parse(PortAudioText), UsernameText));
-            t.ContinueWith(_=> {
+            _ = t.ContinueWith(_ =>
+            {
                 LoggerText.Add("Connected! Result: " + t.Result);
                 ConnectionButtonEnabled = true;
                 ConnectionButtonText = "Connected";
 
-                if(t.Result == -1)
+                if (t.Result == -1)
                 {
                     ConnectionButtonText = "Connect";
                     return;
