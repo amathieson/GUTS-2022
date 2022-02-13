@@ -124,17 +124,17 @@ namespace SpatialCommClient.Models
                     switch (BitConverter.ToInt16(new byte[] { buffer[1], buffer[0] }))
                     {
                         case (short)NetworkPacketId.PING:
-                            logger.Add("Received ping!");
+                            //logger.Add("Received ping!");
                             SendControlMessage(MakeMessage(NetworkPacketId.PONG, new byte[] { }));
                             break;
                         case (short)NetworkPacketId.NEW_USER:
-                            logger.Add("Received NEW_USER!");
+                            //logger.Add("Received NEW_USER!");
                             break;
                         case (short)NetworkPacketId.BYE_USER:
-                            logger.Add("Received BYE_USER!");
+                            //logger.Add("Received BYE_USER!");
                             break;
                         case (short)NetworkPacketId.USER_LIST:
-                            logger.Add("Received USER_LIST!");
+                            //logger.Add("Received USER_LIST!");
                             ReadUserList(socketControl);
                             break;
 
@@ -152,7 +152,7 @@ namespace SpatialCommClient.Models
             {
                 if (Queue.Count > 0)
                 {
-                    if(Queue.TryDequeue(out byte[] buff))
+                    if (Queue.TryDequeue(out byte[] buff))
                         if (buff != null)
                             socket.Send(buff);
                 }
@@ -203,12 +203,13 @@ namespace SpatialCommClient.Models
                 int userID = -1;
                 int counter = 1;
                 int userCount = BitConverter.ToInt32(buffer.Slice(0, 4).ReverseSpan().ToArray());
-                while (counter < userCount) {
+                while (counter < userCount)
+                {
                     userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
                     if (userID == 0)
                         break;
                     int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
-                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 8, Math.Min(strlength, buffer.Length- (baseAddr + 12))).ToArray());
+                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 8, Math.Min(strlength, buffer.Length - (baseAddr + 12))).ToArray());
                     connected.Add(new User(userID, username));
 
                     baseAddr += strlength + 8;
@@ -226,16 +227,20 @@ namespace SpatialCommClient.Models
                 foreach (User u in toRemove)
                 {
                     users.Remove(u);
+                    logger.Add(u.ToString() + " has left the session!");
                 }
 
 
                 foreach (User u in connected)
                 {
                     if (!users.Contains(u))
+                    {
                         users.Add(u);
+                        logger.Add(u.ToString() + " has joined the session!");
+                    }
                 }
             }
         }
-
     }
+
 }
