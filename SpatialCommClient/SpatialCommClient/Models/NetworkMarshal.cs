@@ -197,15 +197,18 @@ namespace SpatialCommClient.Models
                 List<User> connected = new List<User>();
                 int baseAddr = 0;
                 int userID = -1;
-                while (userID!=0) {
-                    userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
+                int counter = 0;
+                int userCount = BitConverter.ToInt32(buffer.Slice(baseAddr + 0, 4).ReverseSpan().ToArray());
+                while (counter < userCount) {
+                    userID = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
                     if (userID == 0)
                         break;
-                    int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 4, 4).ReverseSpan().ToArray());
-                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 8, strlength).ToArray());
+                    int strlength = BitConverter.ToInt32(buffer.Slice(baseAddr + 8, 4).ReverseSpan().ToArray());
+                    string username = Encoding.UTF8.GetString(buffer.Slice(baseAddr + 12, strlength).ToArray());
                     connected.Add(new User(userID, username));
 
-                    baseAddr += strlength + 8;
+                    baseAddr += strlength + 12;
+                    counter++;
                 }
 
                 List<User> toRemove = new List<User>();
